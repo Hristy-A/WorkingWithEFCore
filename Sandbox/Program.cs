@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Store.Data;
+using Store.BusinessLogic.Services;
 using Store.Infrastructure.HashProviders;
 using Store.Data.Entities;
 
@@ -9,26 +8,35 @@ namespace Sandbox
 {
     class Program
     {
+        //TODO:
+        // Сделать таблицу  AccountHistory : [PK] int Id, int UserId?, string UserLogin?, EventType EventType, DateTimeOffset Timestamp, string ErrorMessage?
+        // EventType {SuccessfullLogin, SuccessfullLogout, LoginAttempt, Registration}
+       
+
         static void Main(string[] args)
         {
             IPasswordHashProvider hashProvider = new BCryptHashProvider();
 
-            User adminUser = new User();
-            adminUser.IsActive = true;
-            adminUser.Login = "admin";
-            adminUser.Password = hashProvider.GenerateHash("admin");
-            adminUser.CreatedOn = DateTimeOffset.UtcNow;
+            IAccountService accountService = new AccountService(hashProvider);
 
-            using (var dbContext = new StoreDbContext())
+            Console.Write("Enter login: ");
+            var login = Console.ReadLine();
+
+            Console.Write("Enter password: ");
+            var password = Console.ReadLine();
+
+            var user = accountService.Login(login, password);
+
+            if (user != null)
             {
-                var adminRole = dbContext.Set<Role>().FirstOrDefault(x => x.ShortName == "Administrator");
-
-                adminUser.Roles.Add(adminRole);
-
-                dbContext.Users.Add(adminUser);
-                
-                dbContext.SaveChanges();
+                Console.WriteLine($"User '{user.Login}' is in roles: {string.Join(", ", user.Roles.Select(x => x.ShortName))}");
             }
+            else
+            {
+                Console.WriteLine("Smth goes wrong");
+            }
+
+            Console.ReadLine();
         }
     }
 }
