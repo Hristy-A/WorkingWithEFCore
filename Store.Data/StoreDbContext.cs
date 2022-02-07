@@ -7,6 +7,7 @@ namespace Store.Data
     {
         public DbSet<Product> Products { get; set; }
         public DbSet<Manufacturer> Manufacturers { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -37,6 +38,10 @@ namespace Store.Data
                 .WithMany()
                 .HasForeignKey(x => x.ManufacturerId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<User>()
+                .HasMany(x => x.Roles)
+                .WithMany(x => x.Users);
         }
     }
 }

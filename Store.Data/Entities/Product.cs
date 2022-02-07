@@ -8,7 +8,6 @@
         public int ManufacturerId { get; set; }
         public decimal Price { get; set; }
 
-
         #region Navigation properties
 
         public virtual Manufacturer Manufacturer { get; set; }
