@@ -1,4 +1,4 @@
-﻿namespace Store.Infrastructure
+﻿namespace Store.Infrastructure.HashProviders
 {
     public interface IPasswordHashProvider
     {

@@ -11,6 +11,11 @@ namespace Store.Data.Entities
         public DateTimeOffset CreatedOn { get; set; }
         public bool IsActive { get; set; }
 
+        public User()
+        {
+            Roles = new HashSet<Role>();
+        }
+
         #region Navigation properties
 
         public virtual ICollection<Role> Roles { get; set; }
