@@ -42,6 +42,8 @@ namespace Store.Data
             modelBuilder.Entity<User>()
                 .HasMany(x => x.Roles)
                 .WithMany(x => x.Users);
+
+            // TODO: добавить уникальный индекс на колонку Login, создать миграцию MakeLoginUnique (HasIndex(), Unique())
         }
     }
 }
