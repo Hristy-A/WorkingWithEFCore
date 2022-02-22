@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Store.Data;
@@ -9,9 +10,10 @@ using Store.Data;
 namespace Store.Data.Migrations
 {
     [DbContext(typeof(StoreDbContext))]
-    partial class StoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220221145717_AddLoginIndexUniqueAndFixNamingInDatabase")]
+    partial class AddLoginIndexUniqueAndFixNamingInDatabase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,39 +38,6 @@ namespace Store.Data.Migrations
                         .HasDatabaseName("iX_roleUser_usersId");
 
                     b.ToTable("roleUser");
-                });
-
-            modelBuilder.Entity("Store.Data.Entities.AccountHistory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
-                    b.Property<DateTimeOffset>("DateTimeOffset")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("dateTimeOffset");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasColumnType("text")
-                        .HasColumnName("errorMessage");
-
-                    b.Property<int>("EventType")
-                        .HasColumnType("integer")
-                        .HasColumnName("eventType");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer")
-                        .HasColumnName("userId");
-
-                    b.HasKey("Id")
-                        .HasName("pK_accountHistory");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("iX_accountHistory_userId");
-
-                    b.ToTable("accountHistory");
                 });
 
             modelBuilder.Entity("Store.Data.Entities.Manufacturer", b =>
@@ -197,18 +166,6 @@ namespace Store.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Store.Data.Entities.AccountHistory", b =>
-                {
-                    b.HasOne("Store.Data.Entities.User", "User")
-                        .WithMany("AccountHistory")
-                        .HasForeignKey("UserId")
-                        .HasConstraintName("fK_accountHistory_users_userId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Store.Data.Entities.Product", b =>
                 {
                     b.HasOne("Store.Data.Entities.Manufacturer", "Manufacturer")
@@ -219,11 +176,6 @@ namespace Store.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Manufacturer");
-                });
-
-            modelBuilder.Entity("Store.Data.Entities.User", b =>
-                {
-                    b.Navigation("AccountHistory");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Store.Data.ModelConfigurations;
 using Store.Data.Entities;
+using Npgsql;
 
 namespace Store.Data
 {
@@ -11,39 +13,30 @@ namespace Store.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var csb = new Npgsql.NpgsqlConnectionStringBuilder();
-            csb.Database = "store";
-            csb.Host = "localhost";
-            csb.Username = "postgres";
-            csb.Password = "admin";
+            var csb = new NpgsqlConnectionStringBuilder
+            {
+                Database = "store",
+                Host = "localhost",
+                Username = "postgres",
+                Password = "admin"
+            };
 
             var connectionString = csb.ToString();
 
-            optionsBuilder.UseNpgsql(connectionString);
+            optionsBuilder
+                .UseNpgsql(connectionString)
+                .UseCamelCaseNamingConvention();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Product>(entity =>
-            {
-                entity
-                    .Property(x => x.Name)
-                    .HasMaxLength(255);
-            });
+            new ProductEntityTypeConfiguration().Configure(modelBuilder.Entity<Product>());
+            new UserEntityTypeConfiguration().Configure(modelBuilder.Entity<User>());
+            new AccountHistoryTypeConfiguration().Configure(modelBuilder.Entity<AccountHistory>());
 
-            modelBuilder.Entity<Product>()
-                .HasOne(x => x.Manufacturer)
-                .WithMany()
-                .HasForeignKey(x => x.ManufacturerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<User>()
-                .HasMany(x => x.Roles)
-                .WithMany(x => x.Users);
-
-            // TODO: добавить уникальный индекс на колонку Login, создать миграцию MakeLoginUnique (HasIndex(), Unique())
+            // TODO: (done) добавить уникальный индекс на колонку Login, создать миграцию MakeLoginUnique (HasIndex(), Unique())
         }
     }
 }
