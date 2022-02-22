@@ -28,7 +28,7 @@ namespace Store.BusinessLogic.Services
             // проверить, не деактивирован ли он
             try
             {
-                if (user is null)
+                if (user is null) // TODO: до трая бросить ошибку
                 {
                     _logger.Log("User cannot be null");
                     return;
@@ -49,7 +49,7 @@ namespace Store.BusinessLogic.Services
                     {
                         DateTimeOffset = DateTimeOffset.UtcNow,
                         EventType = EventType.Disabled,
-                        User = user,
+                        //User = user,
                         UserId = user.Id
                     });
                     user.IsActive = false;
@@ -70,7 +70,6 @@ namespace Store.BusinessLogic.Services
 
             try
             {
-                // TODO: (done) закрыть контекст сразу после загрузки пользователя
                 using (var dbContext = new StoreDbContext())
                 {
                     user = dbContext.Users
@@ -80,13 +79,13 @@ namespace Store.BusinessLogic.Services
 
                 if(user is null)
                 {
-                    _logger.Log("User no fount");
+                    _logger.Log("User not found");
                     return null;
                 }
 
                 if (!user.IsActive)
                 {
-                    throw new LogInException("User is not exist");
+                    throw new LogInException("User is not active");
                 }
 
                 if (!_hashProvider.Verify(password, user.Password))
@@ -94,13 +93,14 @@ namespace Store.BusinessLogic.Services
                     throw new LogInException("Wrong password");
                 }
 
-                using (StoreDbContext dbContext = new StoreDbContext())
+                // TODO: обновлять AccountHistory не через юзера, а напрямую через ДБсет -> не придется трекать юзера сквозь контексты
+                using (var dbContext = new StoreDbContext())
                 {
                     user.AccountHistory.Add(new AccountHistory
                     {
                         DateTimeOffset = DateTimeOffset.UtcNow,
                         EventType = EventType.SuccessfullLogIn,
-                        User = user,
+                        //User = user,
                         UserId = user.Id
                     });
 
@@ -112,11 +112,12 @@ namespace Store.BusinessLogic.Services
             {
                 using (StoreDbContext dbContext = new StoreDbContext())
                 {
+                    //тут юзер может быть null, если упало до получения юзера из БД
                     user.AccountHistory.Add(new AccountHistory
                     {
                         DateTimeOffset = DateTimeOffset.UtcNow,
                         EventType = EventType.LogInAttempt,
-                        User = user,
+                        //User = user,
                         UserId = user.Id,
                         ErrorMessage = ex.Message
                     });
@@ -137,7 +138,7 @@ namespace Store.BusinessLogic.Services
             // TODO: реализовать запись в таблицу истории действий, когда она будет добавлена
             try
             {
-                if (user is null) 
+                if (user is null) //TODO тут бы ошибку бросить - вне try
                 {
                     _logger.Log("User cannot be null");
                     return;
@@ -147,17 +148,17 @@ namespace Store.BusinessLogic.Services
                 {
                     user = dbContext.Users.SingleOrDefault(x => x.Id == user.Id);
 
-                    if (!user.IsActive)
-                    {
-                        throw new LogInException("User is not exist");
-                    }
-
-                    if (user is null)
+                    if (user is null) //TODO тянет на исключение
                     {
                         _logger.Log("User not found");
                         return;
                     }
 
+                    if (!user.IsActive) // TODO не похоже на ошибку, но можно залогировать странное поведение
+                    {
+                        throw new LogInException("User is not exist");
+                    }
+                    
                     user.AccountHistory.Add(new AccountHistory
                     {
                         DateTimeOffset = DateTimeOffset.UtcNow,
@@ -218,6 +219,7 @@ namespace Store.BusinessLogic.Services
 
                 using (StoreDbContext dbContext = new StoreDbContext())
                 {
+                    //TODO упростить выражение - завести переменную
                     if (dbContext.Users.SingleOrDefault(x => x.Login == login) is null)
                     {
                         dbContext.Users.Add(new User

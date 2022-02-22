@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 
 namespace Store.Infrastructure.HashProviders
 {
     public class VanillaHashProvider : IPasswordHashProvider
     {
-        public string GenerateHash(string input)
+        public string GenerateHash([DisallowNull] string input)
         {
             byte[] salt = new byte[16];
             byte[] hashedPassword = new byte[36];
