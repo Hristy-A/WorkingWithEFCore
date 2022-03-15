@@ -41,11 +41,7 @@ namespace Store.BusinessLogic.Services
 
         public void Disable(User user)
         {
-            // TODO: (done)
-
-            // проверить, есть ли такой пользователь вообще
-            // проверить, не деактивирован ли он
-            if (user is null) // TODO: до трая бросить ошибку
+            if (user is null)
             {
                 _logger.Log("User cannot be null");
                 throw new ArgumentNullException(nameof(user));
@@ -114,7 +110,6 @@ namespace Store.BusinessLogic.Services
                 }
 
                 _usersOnline.Add(user);
-                // TODO: (done2) обновлять AccountHistory не через юзера, а напрямую через ДБсет -> не придется трекать юзера сквозь контексты
             }
             catch (LoginException ex)
             {
@@ -148,24 +143,21 @@ namespace Store.BusinessLogic.Services
 
         public void LogOut(User user)
         {
-            if (user is null) //TODO (done2) тут бы ошибку бросить - вне try
+            if (user is null)
             {
                 _logger.Log("User cannot be null");
                 return;
             }
-            // TODO: реализовать запись в таблицу истории действий, когда она будет добавлена
+            
             try
             {
-
                 using (var dbContext = new StoreDbContext())
                 {
                     user = dbContext.Users.SingleOrDefault(x => x.Id == user.Id);
 
-                    if (user is null) throw new LogoutException("User not found"); //TODO (done2) тянет на исключение
+                    if (user is null) throw new LogoutException("User not found");
 
-                    if (!user.Disabled) throw new LoginException("User is not exist"); // TODO (done2) не похоже на ошибку, но можно залогировать странное поведение
-                                                                                       // решил, что это всё таки ошибка, т.к. не будет ситуаций, когда юзер в сети с состоянием Disabled
-                                                                                       // т.к. медо Disable исключает данную ситуация (вызывает LogOut если юзер в сети).
+                    if (!user.Disabled) throw new LoginException("User is not exist");
 
                     if (!_usersOnline.Contains(user)) 
                         throw new InvalidOperationException("User cannot LogOut from offline state");
@@ -229,8 +221,8 @@ namespace Store.BusinessLogic.Services
 
                 using (StoreDbContext dbContext = new StoreDbContext())
                 {
-                    //TODO (done2) упростить выражение - завести переменную
-                    if (dbContext.Users.SingleOrDefault(x => x.Login == login) is null)
+                    var existingUser = dbContext.Users.SingleOrDefault(x => x.Login == login);
+                    if (existingUser is null)
                     {
                         User user = CreateUser(login, hashedPassword);
                         dbContext.Users.Add(user);

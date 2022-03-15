@@ -2,7 +2,6 @@
 
 namespace Store.BusinessLogic.Exceptions
 {
-    // TODO: (done) создать дочерние типы LoginException, SignUpException и бросать их в нужных местах
     public class BusinessLogicException : Exception
     {
         public BusinessLogicException() { }

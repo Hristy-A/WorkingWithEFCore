@@ -8,7 +8,10 @@ namespace Store.Data.Extensions
     {
         public static void InitilizeEnumTable<TEnumType>(ModelBuilder modelBuilder) where TEnumType : struct, Enum
         {
-            foreach (EventType eventType in Enum.GetValues<EventType>()) modelBuilder.Entity<EventTypeInfo>().HasData(new EventTypeInfo(eventType));
+            foreach (EventType eventType in Enum.GetValues<EventType>())
+            {
+                modelBuilder.Entity<EventTypeInfo>().HasData(new EventTypeInfo(eventType));
+            }
         }
     }
 }

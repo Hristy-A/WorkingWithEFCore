@@ -10,7 +10,6 @@ namespace UnitTests.HashProvidersTests
         [InlineData("qwerty")]
         [InlineData("")]
         [InlineData("⚒⚓☣✈")]
-        //TODO: (done2) тест на юникодные символы + если код свалится, то подумать, как быть
         public void GenerateHashAndLogging_WithDifferenceNotNullInput_SuccesfullGenerateHashAndLogin(string password)
         {
             // Arrange
@@ -31,7 +30,7 @@ namespace UnitTests.HashProvidersTests
         [Fact]
         public void GenerateHash_WithTheSameInput_DifferentHashes()
         {
-            // Arragne
+            // Arrange
             IPasswordHashProvider provider = new VanillaHashProvider();
             string password = "password";
             string hash1, hash2;

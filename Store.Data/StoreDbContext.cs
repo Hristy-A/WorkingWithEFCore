@@ -43,7 +43,6 @@ namespace Store.Data
             new EventTypeInfoTypeConfiguration().Configure(modelBuilder.Entity<EventTypeInfo>());
 
             InitializeHelper.InitilizeEnumTable<EventType>(modelBuilder);
-            // TODO: (done) добавить уникальный индекс на колонку Login, создать миграцию MakeLoginUnique (HasIndex(), Unique())
         }
     }
 }
