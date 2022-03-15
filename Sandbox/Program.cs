@@ -4,8 +4,7 @@ using Store.BusinessLogic.Services;
 using Store.Infrastructure.HashProviders;
 using Store.Infrastructure.Loggers;
 using System;
-using System.Linq;
-using System.Collections.Generic;
+using Store.Data;
 
 namespace Sandbox
 {
@@ -29,10 +28,9 @@ namespace Sandbox
 
             IPasswordHashProvider hashProvider = new BCryptHashProvider();
             ILogger logger = new DebugWindowLogger();
+            StoreDbContext dbContext = new PostgresStoreDbContext();
 
-            IAccountService accountService = new AccountService(hashProvider, logger);
-
-
+            IAccountService accountService = new AccountService(dbContext, hashProvider, logger);
 
             while (true)
             {

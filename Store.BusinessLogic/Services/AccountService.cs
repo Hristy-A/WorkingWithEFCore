@@ -13,6 +13,7 @@ namespace Store.BusinessLogic.Services
 {
     public class AccountService : IAccountService, IEnumerable<User>
     {
+        private readonly StoreDbContext _dataContext;
         private readonly IPasswordHashProvider _hashProvider;
         private readonly ILogger _logger;
 
@@ -24,8 +25,9 @@ namespace Store.BusinessLogic.Services
             _usersOnline = new List<User>(dbContext.Users.Count(x => !x.Disabled));
         }
 
-        public AccountService(IPasswordHashProvider hashProvider, ILogger logger) : this()
+        public AccountService(StoreDbContext dataContext, IPasswordHashProvider hashProvider, ILogger logger) : this()
         {
+            _dataContext = dataContext ?? throw new ArgumentNullException(nameof(dataContext));
             _hashProvider = hashProvider ?? throw new ArgumentNullException(nameof(hashProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -49,28 +51,24 @@ namespace Store.BusinessLogic.Services
 
             try
             {
-                using (var dbContext = new PostgresStoreDbContext())
+                // HACK: нужно ли проверять, имеются ли в бд юзены с одинаковыми id или login и как на реагировать?
+                user = _dataContext.Users.SingleOrDefault(x => x.Id == user.Id);
+
+                if (user is null) _logger.Log("User not found");
+
+                if (user.Disabled) throw new DisableException("User is already disabled");
+
+                if (_usersOnline.Contains(user))
                 {
-                    // HACK: нужно ли проверять, имеются ли в бд юзены с одинаковыми id или login и как на реагировать?
-                    user = dbContext.Users.SingleOrDefault(x => x.Id == user.Id);
-
-                    if (user is null) _logger.Log("User not found");
-
-                    if (user.Disabled) throw new DisableException("User is already disabled");
-
-                    if (_usersOnline.Contains(user))
-                    {
-                        LogOut(user);
-                        _usersOnline.Remove(user);
-                    }
-
-                    AccountHistory accountHistoryDisabled = CreateAccountHistory(EventType.Disabled, user, null);
-
-                    dbContext.AccountHistories.Add(accountHistoryDisabled);
-                    user.Disabled = true;
-
-                    dbContext.SaveChanges();
+                    LogOut(user);
+                    _usersOnline.Remove(user);
                 }
+
+                user.Disabled = true;
+
+                AccountHistory accountHistoryDisabled = CreateAccountHistory(EventType.Disabled, user, null);
+                _dataContext.AccountHistories.Add(accountHistoryDisabled);
+                _dataContext.SaveChanges();
             }
             catch (Exception ex)
             {
@@ -85,35 +83,31 @@ namespace Store.BusinessLogic.Services
 
             try
             {
-                using (var dbContext = new PostgresStoreDbContext())
+                user = _dataContext.Users
+                    .Include(x => x.Roles)
+                    .SingleOrDefault(x => x.Login == login);
+
+                if (user is null)
                 {
-                    user = dbContext.Users
-                        .Include(x => x.Roles)
-                        .SingleOrDefault(x => x.Login == login);
-
-                    if (user is null)
-                    {
-                        _logger.Log("User not found");
-                        return null;
-                    }
-
-                    if (user.Disabled) throw new LoginException("User was deleted");
-
-                    if (!_hashProvider.Verify(password, user.Password)) throw new LoginException("Wrong password");
-
-                    if (_usersOnline.Contains(user)) throw new LoginException("User already online");
-
-                    AccountHistory accountHistorySuccessfullLogin = CreateAccountHistory(EventType.SuccessfullLogin, user, null);
-
-                    dbContext.AccountHistories.Add(accountHistorySuccessfullLogin);
-                    dbContext.SaveChanges();
+                    _logger.Log("User not found");
+                    return null;
                 }
+
+                if (user.Disabled) throw new LoginException("User was deleted");
+
+                if (!_hashProvider.Verify(password, user.Password)) throw new LoginException("Wrong password");
+
+                if (_usersOnline.Contains(user)) throw new LoginException("User already online");
+
+                AccountHistory accountHistorySuccessfullLogin = CreateAccountHistory(EventType.SuccessfullLogin, user, null);
+
+                _dataContext.AccountHistories.Add(accountHistorySuccessfullLogin);
+                _dataContext.SaveChanges();
 
                 _usersOnline.Add(user);
             }
             catch (LoginException ex)
             {
-                using var dbContext = new PostgresStoreDbContext();
                 // (done2 fixed) тут юзер может быть null, если упало до получения юзера из БД
                 //user.AccountHistory.Add(new AccountHistory
                 //{
@@ -126,8 +120,8 @@ namespace Store.BusinessLogic.Services
 
                 AccountHistory accountHistoryLoginAttempt = CreateAccountHistory(EventType.LoginAttempt, user, ex.Message);
 
-                dbContext.AccountHistories.Add(accountHistoryLoginAttempt);
-                dbContext.SaveChanges();
+                _dataContext.AccountHistories.Add(accountHistoryLoginAttempt);
+                _dataContext.SaveChanges();
 
                 _logger.Log($"[{ex}] {ex.Message}");
                 return null;
@@ -148,39 +142,36 @@ namespace Store.BusinessLogic.Services
                 _logger.Log("User cannot be null");
                 return;
             }
-            
+
             try
             {
-                using (var dbContext = new PostgresStoreDbContext())
-                {
-                    user = dbContext.Users.SingleOrDefault(x => x.Id == user.Id);
 
-                    if (user is null) throw new LogoutException("User not found");
+                user = _dataContext.Users.SingleOrDefault(x => x.Id == user.Id);
 
-                    if (!user.Disabled) throw new LoginException("User is not exist");
+                if (user is null) throw new LogoutException("User not found");
 
-                    if (!_usersOnline.Contains(user)) 
-                        throw new InvalidOperationException("User cannot LogOut from offline state");
+                if (!user.Disabled) throw new LoginException("User is not exist");
 
-                    AccountHistory accountHistorySuccessfullLogout = CreateAccountHistory(EventType.SuccessfullLogout, user, null);
+                if (!_usersOnline.Contains(user))
+                    throw new InvalidOperationException("User cannot LogOut from offline state");
 
-                    dbContext.AccountHistories.Add(accountHistorySuccessfullLogout);
-                    dbContext.SaveChanges();
-                }
+                AccountHistory accountHistorySuccessfullLogout = CreateAccountHistory(EventType.SuccessfullLogout, user, null);
+
+                _dataContext.AccountHistories.Add(accountHistorySuccessfullLogout);
+                _dataContext.SaveChanges();
+
                 _usersOnline.Remove(user);
             }
             catch (LogoutException ex)
             {
-                using var dbContext = new PostgresStoreDbContext();
-
                 AccountHistory accountHistorySuccessfullLogout = CreateAccountHistory(EventType.LogoutAttempt, user, ex.Message);
 
-                dbContext.AccountHistories.Add(accountHistorySuccessfullLogout);
-                dbContext.SaveChanges();
+                _dataContext.AccountHistories.Add(accountHistorySuccessfullLogout);
+                _dataContext.SaveChanges();
 
                 _logger.Log($"[{ex}] {ex.Message}");
             }
-            catch(InvalidOperationException ex)
+            catch (InvalidOperationException ex)
             {
                 _logger.Log($"[{ex}] {ex.Message}");
                 throw;
@@ -219,19 +210,16 @@ namespace Store.BusinessLogic.Services
 
                 string hashedPassword = _hashProvider.GenerateHash(password);
 
-                using (PostgresStoreDbContext dbContext = new PostgresStoreDbContext())
+                var existingUser = _dataContext.Users.SingleOrDefault(x => x.Login == login);
+                if (existingUser is null)
                 {
-                    var existingUser = dbContext.Users.SingleOrDefault(x => x.Login == login);
-                    if (existingUser is null)
-                    {
-                        User user = CreateUser(login, hashedPassword);
-                        dbContext.Users.Add(user);
-                        dbContext.SaveChanges();
-                    }
-                    else
-                    {
-                        throw new SignupException("This login already exists");
-                    }
+                    User user = CreateUser(login, hashedPassword);
+                    _dataContext.Users.Add(user);
+                    _dataContext.SaveChanges();
+                }
+                else
+                {
+                    throw new SignupException("This login already exists");
                 }
             }
             catch (SignupException ex)

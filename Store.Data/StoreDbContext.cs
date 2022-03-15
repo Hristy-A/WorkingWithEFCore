@@ -6,6 +6,9 @@ using Store.Data.Entities;
 
 namespace Store.Data
 {
+    /// <summary>
+    /// Interface for application database context
+    /// </summary>
     public abstract class StoreDbContext : DbContext
     {
         public DbSet<Product> Products { get; set; }
