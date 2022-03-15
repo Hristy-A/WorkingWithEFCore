@@ -66,7 +66,7 @@ namespace Store.BusinessLogic.Services
 
                     AccountHistory accountHistoryDisabled = CreateAccountHistory(EventType.Disabled, user, null);
 
-                    dbContext.AccountHistorys.Add(accountHistoryDisabled);
+                    dbContext.AccountHistories.Add(accountHistoryDisabled);
                     user.Disabled = true;
 
                     dbContext.SaveChanges();
@@ -105,7 +105,7 @@ namespace Store.BusinessLogic.Services
 
                     AccountHistory accountHistorySuccessfullLogin = CreateAccountHistory(EventType.SuccessfullLogin, user, null);
 
-                    dbContext.AccountHistorys.Add(accountHistorySuccessfullLogin);
+                    dbContext.AccountHistories.Add(accountHistorySuccessfullLogin);
                     dbContext.SaveChanges();
                 }
 
@@ -126,7 +126,7 @@ namespace Store.BusinessLogic.Services
 
                 AccountHistory accountHistoryLoginAttempt = CreateAccountHistory(EventType.LoginAttempt, user, ex.Message);
 
-                dbContext.AccountHistorys.Add(accountHistoryLoginAttempt);
+                dbContext.AccountHistories.Add(accountHistoryLoginAttempt);
                 dbContext.SaveChanges();
 
                 _logger.Log($"[{ex}] {ex.Message}");
@@ -164,7 +164,7 @@ namespace Store.BusinessLogic.Services
 
                     AccountHistory accountHistorySuccessfullLogout = CreateAccountHistory(EventType.SuccessfullLogout, user, null);
 
-                    dbContext.AccountHistorys.Add(accountHistorySuccessfullLogout);
+                    dbContext.AccountHistories.Add(accountHistorySuccessfullLogout);
                     dbContext.SaveChanges();
                 }
                 _usersOnline.Remove(user);
@@ -175,7 +175,7 @@ namespace Store.BusinessLogic.Services
 
                 AccountHistory accountHistorySuccessfullLogout = CreateAccountHistory(EventType.LogoutAttempt, user, ex.Message);
 
-                dbContext.AccountHistorys.Add(accountHistorySuccessfullLogout);
+                dbContext.AccountHistories.Add(accountHistorySuccessfullLogout);
                 dbContext.SaveChanges();
 
                 _logger.Log($"[{ex}] {ex.Message}");
