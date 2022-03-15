@@ -16,7 +16,7 @@ namespace Store.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Relational:MaxIdentifierLength", 63)
-                .HasAnnotation("ProductVersion", "5.0.14")
+                .HasAnnotation("ProductVersion", "5.0.15")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
             modelBuilder.Entity("RoleUser", b =>
@@ -63,12 +63,64 @@ namespace Store.Data.Migrations
                         .HasColumnName("userId");
 
                     b.HasKey("Id")
-                        .HasName("pK_accountHistory");
+                        .HasName("pK_accountHistorys");
 
                     b.HasIndex("UserId")
-                        .HasDatabaseName("iX_accountHistory_userId");
+                        .HasDatabaseName("iX_accountHistorys_userId");
 
-                    b.ToTable("accountHistory");
+                    b.ToTable("accountHistorys");
+                });
+
+            modelBuilder.Entity("Store.Data.Entities.EventTypeInfo", b =>
+                {
+                    b.Property<int>("TypeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("typeId");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("TypeId")
+                        .HasName("pK_eventTypeInfo");
+
+                    b.ToTable("eventTypeInfo");
+
+                    b.HasData(
+                        new
+                        {
+                            TypeId = 0,
+                            Description = "Successful login",
+                            Name = "SuccessfullLogin"
+                        },
+                        new
+                        {
+                            TypeId = 1,
+                            Description = "Successfull logout",
+                            Name = "SuccessfullLogout"
+                        },
+                        new
+                        {
+                            TypeId = 2,
+                            Description = "Failed login attempt",
+                            Name = "LoginAttempt"
+                        },
+                        new
+                        {
+                            TypeId = 3,
+                            Description = "Failed logout attempt",
+                            Name = "LogoutAttempt"
+                        },
+                        new
+                        {
+                            TypeId = 4,
+                            Description = "Account disabled",
+                            Name = "Disabled"
+                        });
                 });
 
             modelBuilder.Entity("Store.Data.Entities.Manufacturer", b =>
@@ -157,9 +209,9 @@ namespace Store.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("createdOn");
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("Disabled")
                         .HasColumnType("boolean")
-                        .HasColumnName("isActive");
+                        .HasColumnName("disabled");
 
                     b.Property<string>("Login")
                         .IsRequired()
@@ -202,7 +254,7 @@ namespace Store.Data.Migrations
                     b.HasOne("Store.Data.Entities.User", "User")
                         .WithMany("AccountHistory")
                         .HasForeignKey("UserId")
-                        .HasConstraintName("fK_accountHistory_users_userId")
+                        .HasConstraintName("fK_accountHistorys_users_userId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

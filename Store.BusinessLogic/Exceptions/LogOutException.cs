@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Store.BusinessLogic.Exceptions
 {
-    internal class LogOutException : BusinessLogicException
+    internal class LogoutException : BusinessLogicException
     {
-        public LogOutException() { }
-        public LogOutException(string message) : base(message) { }
-        public LogOutException(string message, Exception innerException) : base(message, innerException) { }
+        public LogoutException() { }
+        public LogoutException(string message) : base(message) { }
+        public LogoutException(string message, Exception innerException) : base(message, innerException) { }
     }
 }

@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Store.BusinessLogic.Exceptions
 {
-    internal class SignUpException : BusinessLogicException
+    internal class SignupException : BusinessLogicException
     {
-        public SignUpException() { }
-        public SignUpException(string message) : base(message) { }
-        public SignUpException(string message, Exception innerException) : base(message, innerException) { }
+        public SignupException() { }
+        public SignupException(string message) : base(message) { }
+        public SignupException(string message, Exception innerException) : base(message, innerException) { }
     }
 }

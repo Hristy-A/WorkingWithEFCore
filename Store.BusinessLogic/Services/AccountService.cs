@@ -6,19 +6,38 @@ using Store.Data;
 using Store.Data.Entities;
 using Store.Infrastructure.HashProviders;
 using Store.Infrastructure.Loggers;
+using System.Collections.Generic;
+using System.Collections;
 
 namespace Store.BusinessLogic.Services
 {
-    public class AccountService : IAccountService
+    public class AccountService : IAccountService, IEnumerable<User>
     {
         private readonly IPasswordHashProvider _hashProvider;
         private readonly ILogger _logger;
 
-        public AccountService(IPasswordHashProvider hashProvider, ILogger logger)
+        private readonly List<User> _usersOnline;
+
+        private AccountService()
+        {
+            using var dbContext = new StoreDbContext();
+            _usersOnline = new List<User>(dbContext.Users.Count(x => !x.Disabled));
+        }
+
+        public AccountService(IPasswordHashProvider hashProvider, ILogger logger) : this()
         {
             _hashProvider = hashProvider ?? throw new ArgumentNullException(nameof(hashProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
+        private AccountHistory CreateAccountHistory(EventType eventType, User user, string errorMessage) =>
+            new AccountHistory
+            {
+                EventType = eventType,
+                User = user,
+                ErrorMessage = errorMessage,
+                DateTimeOffset = DateTimeOffset.UtcNow
+            };
 
         public void Disable(User user)
         {
@@ -26,33 +45,33 @@ namespace Store.BusinessLogic.Services
 
             // проверить, есть ли такой пользователь вообще
             // проверить, не деактивирован ли он
+            if (user is null) // TODO: до трая бросить ошибку
+            {
+                _logger.Log("User cannot be null");
+                throw new ArgumentNullException(nameof(user));
+            }
+
             try
             {
-                if (user is null) // TODO: до трая бросить ошибку
+                using (var dbContext = new StoreDbContext())
                 {
-                    _logger.Log("User cannot be null");
-                    return;
-                }
-
-                using (StoreDbContext dbContext = new StoreDbContext())
-                {
+                    // HACK: нужно ли проверять, имеются ли в бд юзены с одинаковыми id или login и как на реагировать?
                     user = dbContext.Users.SingleOrDefault(x => x.Id == user.Id);
 
-                    if(user is null)
-                    {
-                        _logger.Log("User not found");
-                    }   
+                    if (user is null) _logger.Log("User not found");
 
-                    if (!user.IsActive) throw new DisableException("User is not exist");
+                    if (user.Disabled) throw new DisableException("User is already disabled");
 
-                    user.AccountHistory.Add(new AccountHistory
+                    if (_usersOnline.Contains(user))
                     {
-                        DateTimeOffset = DateTimeOffset.UtcNow,
-                        EventType = EventType.Disabled,
-                        //User = user,
-                        UserId = user.Id
-                    });
-                    user.IsActive = false;
+                        LogOut(user);
+                        _usersOnline.Remove(user);
+                    }
+
+                    AccountHistory accountHistoryDisabled = CreateAccountHistory(EventType.Disabled, user, null);
+
+                    dbContext.AccountHistorys.Add(accountHistoryDisabled);
+                    user.Disabled = true;
 
                     dbContext.SaveChanges();
                 }
@@ -75,57 +94,51 @@ namespace Store.BusinessLogic.Services
                     user = dbContext.Users
                         .Include(x => x.Roles)
                         .SingleOrDefault(x => x.Login == login);
-                }
 
-                if(user is null)
-                {
-                    _logger.Log("User not found");
-                    return null;
-                }
-
-                if (!user.IsActive)
-                {
-                    throw new LogInException("User is not active");
-                }
-
-                if (!_hashProvider.Verify(password, user.Password))
-                {
-                    throw new LogInException("Wrong password");
-                }
-
-                // TODO: обновлять AccountHistory не через юзера, а напрямую через ДБсет -> не придется трекать юзера сквозь контексты
-                using (var dbContext = new StoreDbContext())
-                {
-                    user.AccountHistory.Add(new AccountHistory
+                    if (user is null)
                     {
-                        DateTimeOffset = DateTimeOffset.UtcNow,
-                        EventType = EventType.SuccessfullLogIn,
-                        //User = user,
-                        UserId = user.Id
-                    });
+                        _logger.Log("User not found");
+                        return null;
+                    }
 
-                    dbContext.Users.Update(user);
+                    if (user.Disabled) throw new LoginException("User was deleted");
+
+                    if (!_hashProvider.Verify(password, user.Password)) throw new LoginException("Wrong password");
+
+                    if (_usersOnline.Contains(user)) throw new LoginException("User already online");
+
+                    AccountHistory accountHistorySuccessfullLogin = CreateAccountHistory(EventType.SuccessfullLogin, user, null);
+
+                    dbContext.AccountHistorys.Add(accountHistorySuccessfullLogin);
                     dbContext.SaveChanges();
                 }
+
+                _usersOnline.Add(user);
+                // TODO: (done2) обновлять AccountHistory не через юзера, а напрямую через ДБсет -> не придется трекать юзера сквозь контексты
+            }
+            catch (LoginException ex)
+            {
+                using var dbContext = new StoreDbContext();
+                // (done2 fixed) тут юзер может быть null, если упало до получения юзера из БД
+                //user.AccountHistory.Add(new AccountHistory
+                //{
+                //    DateTimeOffset = DateTimeOffset.UtcNow,
+                //    EventType = EventType.LoginAttempt,
+                //    //User = user,
+                //    UserId = user.Id,
+                //    ErrorMessage = ex.Message
+                //});
+
+                AccountHistory accountHistoryLoginAttempt = CreateAccountHistory(EventType.LoginAttempt, user, ex.Message);
+
+                dbContext.AccountHistorys.Add(accountHistoryLoginAttempt);
+                dbContext.SaveChanges();
+
+                _logger.Log($"[{ex}] {ex.Message}");
+                return null;
             }
             catch (Exception ex)
             {
-                using (StoreDbContext dbContext = new StoreDbContext())
-                {
-                    //тут юзер может быть null, если упало до получения юзера из БД
-                    user.AccountHistory.Add(new AccountHistory
-                    {
-                        DateTimeOffset = DateTimeOffset.UtcNow,
-                        EventType = EventType.LogInAttempt,
-                        //User = user,
-                        UserId = user.Id,
-                        ErrorMessage = ex.Message
-                    });
-
-                    dbContext.Update(user);
-                    dbContext.SaveChanges();
-                }
-
                 _logger.Log($"[{ex}] {ex.Message}");
                 return null;
             }
@@ -135,56 +148,53 @@ namespace Store.BusinessLogic.Services
 
         public void LogOut(User user)
         {
+            if (user is null) //TODO (done2) тут бы ошибку бросить - вне try
+            {
+                _logger.Log("User cannot be null");
+                return;
+            }
             // TODO: реализовать запись в таблицу истории действий, когда она будет добавлена
             try
             {
-                if (user is null) //TODO тут бы ошибку бросить - вне try
-                {
-                    _logger.Log("User cannot be null");
-                    return;
-                }
 
-                using (StoreDbContext dbContext = new StoreDbContext())
+                using (var dbContext = new StoreDbContext())
                 {
                     user = dbContext.Users.SingleOrDefault(x => x.Id == user.Id);
 
-                    if (user is null) //TODO тянет на исключение
-                    {
-                        _logger.Log("User not found");
-                        return;
-                    }
+                    if (user is null) throw new LogoutException("User not found"); //TODO (done2) тянет на исключение
 
-                    if (!user.IsActive) // TODO не похоже на ошибку, но можно залогировать странное поведение
-                    {
-                        throw new LogInException("User is not exist");
-                    }
-                    
-                    user.AccountHistory.Add(new AccountHistory
-                    {
-                        DateTimeOffset = DateTimeOffset.UtcNow,
-                        EventType = EventType.SuccessfullLogOut,
-                        UserId = user.Id,
-                        User = user
-                    });
+                    if (!user.Disabled) throw new LoginException("User is not exist"); // TODO (done2) не похоже на ошибку, но можно залогировать странное поведение
+                                                                                       // решил, что это всё таки ошибка, т.к. не будет ситуаций, когда юзер в сети с состоянием Disabled
+                                                                                       // т.к. медо Disable исключает данную ситуация (вызывает LogOut если юзер в сети).
+
+                    if (!_usersOnline.Contains(user)) 
+                        throw new InvalidOperationException("User cannot LogOut from offline state");
+
+                    AccountHistory accountHistorySuccessfullLogout = CreateAccountHistory(EventType.SuccessfullLogout, user, null);
+
+                    dbContext.AccountHistorys.Add(accountHistorySuccessfullLogout);
+                    dbContext.SaveChanges();
                 }
+                _usersOnline.Remove(user);
+            }
+            catch (LogoutException ex)
+            {
+                using var dbContext = new StoreDbContext();
+
+                AccountHistory accountHistorySuccessfullLogout = CreateAccountHistory(EventType.LogoutAttempt, user, ex.Message);
+
+                dbContext.AccountHistorys.Add(accountHistorySuccessfullLogout);
+                dbContext.SaveChanges();
+
+                _logger.Log($"[{ex}] {ex.Message}");
+            }
+            catch(InvalidOperationException ex)
+            {
+                _logger.Log($"[{ex}] {ex.Message}");
+                throw;
             }
             catch (Exception ex)
             {
-                using (StoreDbContext dbContext = new StoreDbContext())
-                {
-                    user.AccountHistory.Add(new AccountHistory
-                    {
-                        DateTimeOffset = DateTimeOffset.UtcNow,
-                        EventType = EventType.LogOutAttempt,
-                        ErrorMessage = ex.Message,
-                        User = user,
-                        UserId = user.Id
-                    });
-
-                    dbContext.Users.Update(user);
-                    dbContext.SaveChanges();
-                }
-
                 _logger.Log($"[{ex}] {ex.Message}");
             }
         }
@@ -199,14 +209,14 @@ namespace Store.BusinessLogic.Services
 
             // не забыть выставить CreatedOn и IsActive
 
+            if (password != passwordConfirmation)
+            {
+                _logger.Log("Passwords don't math");
+                return;
+            }
+
             try
             {
-                if (password != passwordConfirmation)
-                {
-                    _logger.Log("Passwords don't math");
-                    return;
-                }
-
                 // Validating password... Comming soon :)
                 // if (password.IsBad())
                 // {
@@ -219,28 +229,43 @@ namespace Store.BusinessLogic.Services
 
                 using (StoreDbContext dbContext = new StoreDbContext())
                 {
-                    //TODO упростить выражение - завести переменную
+                    //TODO (done2) упростить выражение - завести переменную
                     if (dbContext.Users.SingleOrDefault(x => x.Login == login) is null)
                     {
-                        dbContext.Users.Add(new User
-                        {
-                            Login = login,
-                            Password = hashedPassword,
-                            CreatedOn = DateTimeOffset.UtcNow,
-                            IsActive = true
-                        });
+                        User user = CreateUser(login, hashedPassword);
+                        dbContext.Users.Add(user);
+                        dbContext.SaveChanges();
                     }
                     else
                     {
-                        throw new SignUpException("This login already exists");
+                        throw new SignupException("This login already exists");
                     }
                 }
             }
-            catch(Exception ex)
+            catch (SignupException ex)
             {
                 _logger.Log($"[{ex}] {ex.Message}");
                 return;
             }
+
+            static User CreateUser(string login, string hashedPassword) =>
+                new User
+                {
+                    Login = login,
+                    Password = hashedPassword,
+                    CreatedOn = DateTimeOffset.UtcNow,
+                    Disabled = false
+                };
+        }
+
+        public IEnumerator<User> GetEnumerator()
+        {
+            return _usersOnline.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

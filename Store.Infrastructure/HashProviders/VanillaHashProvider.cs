@@ -6,13 +6,21 @@ namespace Store.Infrastructure.HashProviders
 {
     public class VanillaHashProvider : IPasswordHashProvider
     {
-        public string GenerateHash([DisallowNull] string input)
+        /// <summary>
+        /// Generate hash with salt from password
+        /// </summary>
+        /// <param name="password">The password to hash.</param>
+        /// <returns>The hashed password.</returns>
+        /// <exception cref="ArgumentNullException">Throw when <paramref name="password"/> is null.</exception>
+        public string GenerateHash([DisallowNull] string password)
         {
+            _ = password ?? throw new ArgumentNullException(nameof(password));
+
             byte[] salt = new byte[16];
             byte[] hashedPassword = new byte[36];
             RandomNumberGenerator.Fill(salt);
 
-            using (var rfc = new Rfc2898DeriveBytes(input, salt, 10000))
+            using (var rfc = new Rfc2898DeriveBytes(password, salt, 10000))
             {
                 byte[] hash = rfc.GetBytes(20);
                 Array.Copy(hash, 0, hashedPassword, 0, 20);
@@ -22,25 +30,30 @@ namespace Store.Infrastructure.HashProviders
             return Convert.ToBase64String(hashedPassword);
         }
 
-        public bool Verify(string input, string hash)
+        /// <summary>
+        /// Verifies that the hash of the given <paramref name="password"/> matches the provided <paramref name="hash"/>
+        /// </summary>
+        /// <param name="password">The password to verify.</param>
+        /// <param name="hash">The previously-hashed password.</param>
+        /// <returns>true if the passwords match, false otherwise.</returns>
+        /// <exception cref="ArgumentNullException">Throw when <paramref name="password"/> or <paramref name="password"/> is null.</exception>
+        public bool Verify(string password, string hash)
         {
+            _ = password ?? throw new ArgumentNullException(nameof(password));
+            _ = hash ?? throw new ArgumentNullException(nameof(password));
+
             byte[] hashedPassword = Convert.FromBase64String(hash);
             byte[] salt = new byte[16];
             byte[] hashedInput;
 
             Array.Copy(hashedPassword, 20, salt, 0, 16);
 
-            using (var rfc = new Rfc2898DeriveBytes(input, salt, 10000))
+            using (var rfc = new Rfc2898DeriveBytes(password, salt, 10000))
             {
                 hashedInput = rfc.GetBytes(20);
             }
 
-            for (int i = 0; i < 20; i++)
-            {
-                if(hashedInput[i] != hashedPassword[i]) return false;
-            }
-
-            return true;
+            return !Equals(hashedInput, hashedPassword);
         }
     }
 }

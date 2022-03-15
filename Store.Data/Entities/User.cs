@@ -9,7 +9,7 @@ namespace Store.Data.Entities
         public string Login { get; set; }
         public string Password { get; set; }
         public DateTimeOffset CreatedOn { get; set; }
-        public bool IsActive { get; set; }
+        public bool Disabled { get; set; }
 
         public User()
         {
