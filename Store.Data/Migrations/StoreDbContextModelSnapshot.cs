@@ -8,7 +8,7 @@ using Store.Data;
 
 namespace Store.Data.Migrations
 {
-    [DbContext(typeof(StoreDbContext))]
+    [DbContext(typeof(PostgresStoreDbContext))]
     partial class StoreDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

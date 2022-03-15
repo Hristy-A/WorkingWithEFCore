@@ -9,7 +9,7 @@ using Store.Data;
 
 namespace Store.Data.Migrations
 {
-    [DbContext(typeof(StoreDbContext))]
+    [DbContext(typeof(PostgresStoreDbContext))]
     [Migration("20220221145717_AddLoginIndexUniqueAndFixNamingInDatabase")]
     partial class AddLoginIndexUniqueAndFixNamingInDatabase
     {

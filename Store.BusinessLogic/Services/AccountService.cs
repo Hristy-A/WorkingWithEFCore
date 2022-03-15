@@ -20,7 +20,7 @@ namespace Store.BusinessLogic.Services
 
         private AccountService()
         {
-            using var dbContext = new StoreDbContext();
+            using var dbContext = new PostgresStoreDbContext();
             _usersOnline = new List<User>(dbContext.Users.Count(x => !x.Disabled));
         }
 
@@ -49,7 +49,7 @@ namespace Store.BusinessLogic.Services
 
             try
             {
-                using (var dbContext = new StoreDbContext())
+                using (var dbContext = new PostgresStoreDbContext())
                 {
                     // HACK: нужно ли проверять, имеются ли в бд юзены с одинаковыми id или login и как на реагировать?
                     user = dbContext.Users.SingleOrDefault(x => x.Id == user.Id);
@@ -85,7 +85,7 @@ namespace Store.BusinessLogic.Services
 
             try
             {
-                using (var dbContext = new StoreDbContext())
+                using (var dbContext = new PostgresStoreDbContext())
                 {
                     user = dbContext.Users
                         .Include(x => x.Roles)
@@ -113,7 +113,7 @@ namespace Store.BusinessLogic.Services
             }
             catch (LoginException ex)
             {
-                using var dbContext = new StoreDbContext();
+                using var dbContext = new PostgresStoreDbContext();
                 // (done2 fixed) тут юзер может быть null, если упало до получения юзера из БД
                 //user.AccountHistory.Add(new AccountHistory
                 //{
@@ -151,7 +151,7 @@ namespace Store.BusinessLogic.Services
             
             try
             {
-                using (var dbContext = new StoreDbContext())
+                using (var dbContext = new PostgresStoreDbContext())
                 {
                     user = dbContext.Users.SingleOrDefault(x => x.Id == user.Id);
 
@@ -171,7 +171,7 @@ namespace Store.BusinessLogic.Services
             }
             catch (LogoutException ex)
             {
-                using var dbContext = new StoreDbContext();
+                using var dbContext = new PostgresStoreDbContext();
 
                 AccountHistory accountHistorySuccessfullLogout = CreateAccountHistory(EventType.LogoutAttempt, user, ex.Message);
 
@@ -219,7 +219,7 @@ namespace Store.BusinessLogic.Services
 
                 string hashedPassword = _hashProvider.GenerateHash(password);
 
-                using (StoreDbContext dbContext = new StoreDbContext())
+                using (PostgresStoreDbContext dbContext = new PostgresStoreDbContext())
                 {
                     var existingUser = dbContext.Users.SingleOrDefault(x => x.Login == login);
                     if (existingUser is null)

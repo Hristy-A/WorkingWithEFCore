@@ -9,7 +9,7 @@ using Store.Data;
 
 namespace Store.Data.Migrations
 {
-    [DbContext(typeof(StoreDbContext))]
+    [DbContext(typeof(PostgresStoreDbContext))]
     [Migration("20220207132121_AddUserAndRoles")]
     partial class AddUserAndRoles
     {

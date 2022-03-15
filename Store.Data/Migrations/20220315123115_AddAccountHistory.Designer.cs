@@ -9,7 +9,7 @@ using Store.Data;
 
 namespace Store.Data.Migrations
 {
-    [DbContext(typeof(StoreDbContext))]
+    [DbContext(typeof(PostgresStoreDbContext))]
     [Migration("20220315123115_AddAccountHistory")]
     partial class AddAccountHistory
     {
