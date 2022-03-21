@@ -18,12 +18,12 @@ namespace Sandbox
         static void Main()
         {
             #region Build Options
-#if (DEBUG && testing)
-            {
-                // heating database
-                using (Store.Data.StoreDbContext dbContext = new Store.Data.StoreDbContext()) dbContext.EventTypeInfo.FirstOrDefault();
-            }
-#endif
+//#if (DEBUG && testing)
+//            {
+//                // heating database
+//                using (Store.Data.StoreDbContext dbContext = new Store.Data.StoreDbContext()) dbContext.EventTypeInfo.FirstOrDefault();
+//            }
+//#endif
             #endregion
 
             IPasswordHashProvider hashProvider = new BCryptHashProvider();
