@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Store.BusinessLogic.Exceptions
 {
-    internal class DisableException : BusinessLogicException
+    public class DisableException : BusinessLogicException
     {
         public DisableException() { }
         public DisableException(string message) : base(message) { }

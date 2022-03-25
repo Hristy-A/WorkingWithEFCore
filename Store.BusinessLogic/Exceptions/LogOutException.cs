@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Store.BusinessLogic.Exceptions
 {
-    internal class LogoutException : BusinessLogicException
+    public class LogoutException : BusinessLogicException
     {
         public LogoutException() { }
         public LogoutException(string message) : base(message) { }

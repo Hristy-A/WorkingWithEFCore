@@ -1,6 +1,4 @@
-﻿#define testing
-
-using Store.BusinessLogic.Services;
+﻿using Store.BusinessLogic.Services;
 using Store.Infrastructure.HashProviders;
 using Store.Infrastructure.Loggers;
 using System;
@@ -98,46 +96,17 @@ namespace Sandbox
 
         private static void ShowOnlineUsers(IAccountService accountService)
         {
-            int i = 1;
-            foreach (var user in accountService as AccountService) 
-                Console.WriteLine(@$"{i++}. User login: {user.Login} user ID {user.Id}");
-            Console.WriteLine();
+            Console.WriteLine("Not implemented!");
         }
 
         private static void Disable(IAccountService accountService)
         {
-            Console.Write("Enter login: ");
-            var login = Console.ReadLine();
-
-            foreach(var user in accountService as AccountService)
-            {
-                if(user.Login == login)
-                {
-                    accountService.Disable(user);
-                    Console.WriteLine("User disabled\n");
-                    ShowOnlineUsers(accountService);
-                    return;
-                }
-            }
-            Console.WriteLine("User not online or exists\n");
+            Console.Write("Not implemented!");
         }
 
         private static void LogOut(IAccountService accountService)
         {
-            Console.Write("Enter login: ");
-            var login = Console.ReadLine();
-
-            foreach (var user in accountService as AccountService)
-            {
-                if (user.Login == login)
-                {
-                    accountService.LogOut(user);
-                    Console.WriteLine("User logout\n");
-                    ShowOnlineUsers(accountService);
-                    return;
-                }
-            }
-            Console.WriteLine("User not online or exists\n");
+            Console.Write("Not implemented!");
         }
 
         private static void SignUp(IAccountService accountService)

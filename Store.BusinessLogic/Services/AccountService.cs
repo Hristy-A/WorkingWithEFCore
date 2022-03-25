@@ -11,18 +11,15 @@ using System.Collections;
 
 namespace Store.BusinessLogic.Services
 {
-    public class AccountService : IAccountService, IEnumerable<User>
+    public class AccountService : IAccountService
     {
         private readonly StoreDbContext _dataContext;
         private readonly IPasswordHashProvider _hashProvider;
         private readonly ILogger _logger;
 
-        private readonly List<User> _usersOnline;
-
         private AccountService()
         {
             using var dbContext = new PostgresStoreDbContext();
-            _usersOnline = new List<User>(dbContext.Users.Count(x => !x.Disabled));
         }
 
         public AccountService(StoreDbContext dataContext, IPasswordHashProvider hashProvider, ILogger logger) : this()
@@ -58,12 +55,6 @@ namespace Store.BusinessLogic.Services
 
                 if (user.Disabled) throw new DisableException("User is already disabled");
 
-                if (_usersOnline.Contains(user))
-                {
-                    LogOut(user);
-                    _usersOnline.Remove(user);
-                }
-
                 user.Disabled = true;
 
                 AccountHistory accountHistoryDisabled = CreateAccountHistory(EventType.Disabled, user, null);
@@ -97,14 +88,10 @@ namespace Store.BusinessLogic.Services
 
                 if (!_hashProvider.Verify(password, user.Password)) throw new LoginException("Wrong password");
 
-                if (_usersOnline.Contains(user)) throw new LoginException("User already online");
-
                 AccountHistory accountHistorySuccessfullLogin = CreateAccountHistory(EventType.SuccessfullLogin, user, null);
 
                 _dataContext.AccountHistories.Add(accountHistorySuccessfullLogin);
                 _dataContext.SaveChanges();
-
-                _usersOnline.Add(user);
             }
             catch (LoginException ex)
             {
@@ -152,15 +139,10 @@ namespace Store.BusinessLogic.Services
 
                 if (!user.Disabled) throw new LoginException("User is not exist");
 
-                if (!_usersOnline.Contains(user))
-                    throw new InvalidOperationException("User cannot LogOut from offline state");
-
                 AccountHistory accountHistorySuccessfullLogout = CreateAccountHistory(EventType.SuccessfullLogout, user, null);
 
                 _dataContext.AccountHistories.Add(accountHistorySuccessfullLogout);
                 _dataContext.SaveChanges();
-
-                _usersOnline.Remove(user);
             }
             catch (LogoutException ex)
             {
@@ -236,16 +218,6 @@ namespace Store.BusinessLogic.Services
                     CreatedOn = DateTimeOffset.UtcNow,
                     Disabled = false
                 };
-        }
-
-        public IEnumerator<User> GetEnumerator()
-        {
-            return _usersOnline.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
     }
 }
