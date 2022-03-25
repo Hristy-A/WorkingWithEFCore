@@ -174,11 +174,7 @@ namespace Store.BusinessLogic.Services
 
             // не забыть выставить CreatedOn и IsActive
 
-            if (password != passwordConfirmation)
-            {
-                _logger.Log("Passwords don't math");
-                return;
-            }
+            
 
             try
             {
@@ -189,6 +185,12 @@ namespace Store.BusinessLogic.Services
                 //    return;
                 // }
                 // Password - ok
+
+                if (password != passwordConfirmation)
+                {
+                    _logger.Log("Passwords don't math");
+                    throw new SignupException("Passwords don't math");
+                }
 
                 string hashedPassword = _hashProvider.GenerateHash(password);
 
@@ -207,7 +209,7 @@ namespace Store.BusinessLogic.Services
             catch (SignupException ex)
             {
                 _logger.Log($"[{ex}] {ex.Message}");
-                return;
+                throw;
             }
 
             static User CreateUser(string login, string hashedPassword) =>
