@@ -63,7 +63,9 @@ namespace Store.Infrastructure.HashProviders
                 hashedVerifiablePassword = rfc.GetBytes(HashLength);
             }
 
-            return !Equals(hashedVerifiablePassword, hashedPasswordWithSalt);
+            for (int i = 0; i < 20; i++)
+                if (hashedPasswordWithSalt[i] != hashedVerifiablePassword[i]) return false;
+            return true;
         }
     }
 }
