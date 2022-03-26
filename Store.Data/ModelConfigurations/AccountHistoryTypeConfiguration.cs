@@ -13,7 +13,7 @@ namespace Store.Data.ModelConfigurations
                 .HasOne(x => x.User)
                 .WithMany(x => x.AccountHistory)
                 .HasForeignKey(x => x.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
