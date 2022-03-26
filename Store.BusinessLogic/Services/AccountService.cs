@@ -6,8 +6,6 @@ using Store.Data;
 using Store.Data.Entities;
 using Store.Infrastructure.HashProviders;
 using Store.Infrastructure.Loggers;
-using System.Collections.Generic;
-using System.Collections;
 
 namespace Store.BusinessLogic.Services
 {

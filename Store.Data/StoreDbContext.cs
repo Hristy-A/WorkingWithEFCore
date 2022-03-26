@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-
 using Store.Data.ModelConfigurations;
 using Store.Data.Extensions;
 using Store.Data.Entities;

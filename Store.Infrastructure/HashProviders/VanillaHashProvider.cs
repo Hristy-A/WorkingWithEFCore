@@ -6,6 +6,15 @@ namespace Store.Infrastructure.HashProviders
 {
     public class VanillaHashProvider : IPasswordHashProvider
     {
+        // Attention! Don't change this constats, if your database
+        // alredy contains password, hashed by this algorithm.
+        const int HashLength = 20;
+        const int SaltLength = 16;
+        const int HashStartIndex = 0;
+        const int SaltStartIndex = HashLength;
+        const int TotalHashLength = SaltLength + HashLength;
+        const int NumberOfHashingIterations = 100000;
+
         /// <summary>
         /// Generate hash with salt from password
         /// </summary>
@@ -16,18 +25,18 @@ namespace Store.Infrastructure.HashProviders
         {
             _ = password ?? throw new ArgumentNullException(nameof(password));
 
-            byte[] salt = new byte[16];
-            byte[] hashedPassword = new byte[36];
+            byte[] salt = new byte[SaltLength];
+            byte[] hashedPasswordWithSalt = new byte[TotalHashLength];
             RandomNumberGenerator.Fill(salt);
 
-            using (var rfc = new Rfc2898DeriveBytes(password, salt, 10000))
+            using (var rfc = new Rfc2898DeriveBytes(password, salt, NumberOfHashingIterations))
             {
-                byte[] hash = rfc.GetBytes(20);
-                Array.Copy(hash, 0, hashedPassword, 0, 20);
-                Array.Copy(salt, 0, hashedPassword, 20, 16);
+                byte[] hash = rfc.GetBytes(HashLength);
+                Array.Copy(hash, 0, hashedPasswordWithSalt, HashStartIndex, HashLength);
+                Array.Copy(salt, 0, hashedPasswordWithSalt, SaltStartIndex, SaltLength);
             }
 
-            return Convert.ToBase64String(hashedPassword);
+            return Convert.ToBase64String(hashedPasswordWithSalt);
         }
 
         /// <summary>
@@ -42,18 +51,19 @@ namespace Store.Infrastructure.HashProviders
             _ = password ?? throw new ArgumentNullException(nameof(password));
             _ = hash ?? throw new ArgumentNullException(nameof(password));
 
-            byte[] hashedPassword = Convert.FromBase64String(hash);
-            byte[] salt = new byte[16];
-            byte[] hashedInput;
+            byte[] hashedPasswordWithSalt = Convert.FromBase64String(hash);
+            byte[] salt = new byte[SaltLength];
 
-            Array.Copy(hashedPassword, 20, salt, 0, 16);
+            Array.Copy(hashedPasswordWithSalt, SaltStartIndex, salt, 0, SaltLength);
 
-            using (var rfc = new Rfc2898DeriveBytes(password, salt, 10000))
+            byte[] hashedVerifiablePassword;
+
+            using (var rfc = new Rfc2898DeriveBytes(password, salt, NumberOfHashingIterations))
             {
-                hashedInput = rfc.GetBytes(20);
+                hashedVerifiablePassword = rfc.GetBytes(HashLength);
             }
 
-            return !Equals(hashedInput, hashedPassword);
+            return !Equals(hashedVerifiablePassword, hashedPasswordWithSalt);
         }
     }
 }

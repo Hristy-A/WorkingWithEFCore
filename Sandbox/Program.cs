@@ -1,8 +1,8 @@
-﻿using Store.BusinessLogic.Services;
+﻿using System;
+using Store.BusinessLogic.Services;
+using Store.Data;
 using Store.Infrastructure.HashProviders;
 using Store.Infrastructure.Loggers;
-using System;
-using Store.Data;
 
 namespace Sandbox
 {

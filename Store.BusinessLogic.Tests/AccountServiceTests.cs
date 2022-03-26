@@ -1,14 +1,13 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using Store.BusinessLogic.Exceptions;
 using Store.BusinessLogic.Services;
 using Store.Data;
+using Store.Data.Entities;
 using Store.Infrastructure.HashProviders;
 using Store.Infrastructure.Loggers;
-using Moq;
-using Store.Data.Entities;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using Store.BusinessLogic.Exceptions;
 
 namespace Store.BusinessLogic.Tests
 {
