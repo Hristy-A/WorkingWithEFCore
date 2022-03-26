@@ -6,100 +6,112 @@ namespace UnitTests.HashProvidersTests
 {
     public class VanillaHashProviderTests
     {
+        private static IPasswordHashProvider _passwordHashProvider = new VanillaHashProvider();
+
+        #region GenerateHashTests
         [Theory]
-        [InlineData("qwerty")]
         [InlineData("")]
+        [InlineData("qwerty")]
         [InlineData("⚒⚓☣✈")]
-        public void GenerateHashAndLogging_WithDifferenceNotNullInput_SuccesfullGenerateHashAndLogin(string password)
+        [InlineData("\\\n\t\r\f\b")]
+        public void GenerateHash_WithDifferenceNotNullInput_SuccesfullGenerateHash(string password)
         {
             // Arrange
-            IPasswordHashProvider provider = new VanillaHashProvider();
-
             string hash;
-            bool result;
 
             // Act
-            hash = provider.GenerateHash(password);
-            result = provider.Verify(password, hash);
+            hash = _passwordHashProvider.GenerateHash(password);
 
             // Assert
             Assert.NotNull(hash);
-            Assert.True(result);
+            Assert.NotEmpty(hash);
         }
 
-        [Fact]
-        public void GenerateHash_WithTheSameInput_DifferentHashes()
+        [Theory]
+        [InlineData("")]
+        [InlineData("password")]
+        [InlineData("\\\n\t\r\f\b")]
+        public void GenerateHash_WithTheSameInput_ReturnDifferentHashes(string password)
         {
             // Arrange
-            IPasswordHashProvider provider = new VanillaHashProvider();
-            string password = "password";
             string hash1, hash2;
 
             // Act
-            hash1 = provider.GenerateHash(password);
-            hash2 = provider.GenerateHash(password);
+            hash1 = _passwordHashProvider.GenerateHash(password);
+            hash2 = _passwordHashProvider.GenerateHash(password);
 
             // Assert
             Assert.NotEqual(hash1, hash2);
         }
 
         [Fact]
-        public void GenerateHash_WhenInputIsNull_Fail()
+        public void GenerateHash_WhenInputIsNull_ShouldThrowArgumentNullException()
         {
-            // Arrange
-            IPasswordHashProvider provider = new VanillaHashProvider();
-
             // Act
             // Assert
             Assert.Throws<ArgumentNullException>(() =>
             {
-                provider.GenerateHash(null);
+                _passwordHashProvider.GenerateHash(null);
             });
         }
+        #endregion
 
-        [Fact]
-        public void ValidatePassword_WhenHashIsNull_Fail()
+        #region VerifyTests
+        [Theory]
+        [InlineData("correctPassword", null)]
+        [InlineData(null, "_&&Fksejf325jfFjei2425jgt2otj23jTJ")]
+        [InlineData(null, null)]
+        public void Verify_WhenOneOfTheOrBothInputsNull_ShouldThrowArgumentNullException(string password, string hash)
         {
-            //Arrange
-            IPasswordHashProvider provider = new VanillaHashProvider();
-
-            string password = "correctPassword";
-            string hash = null;
-            Action action = () => provider.Verify(password, hash);
+            // Arrange
+            Action action = () => _passwordHashProvider.Verify(password, hash);
 
             // Act
             // Assert
             Assert.Throws<ArgumentNullException>(action);
         }
 
-        [Fact]
-        public void ValidatePassword_WhenPasswordIsNull_Fail()
+        [Theory]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("\t\\\n")]
+        [InlineData("⚒⚓☣✈")]
+        [InlineData("randomPassword")]
+        public void Verify_WithIncorrectPassword_ReturnFalse(string password)
         {
-            //Arrange
-            IPasswordHashProvider provider = new VanillaHashProvider();
-
-            string password = null;
-            string hash = "gwgjk4j1j4h1lh53k1jlh5";
-            Action action = () => provider.Verify(password, hash);
+            // Arrange
+            string incorrectPassword = "incorrectPassword";
+            string hash;
+            bool result;
 
             // Act
+            hash = _passwordHashProvider.GenerateHash(password);
+            result = _passwordHashProvider.Verify(incorrectPassword, hash);
+
             // Assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.False(result);
         }
 
-        [Fact]
-        public void ValidatePassword_WhenAllInputsIsNull_Fail()
+        [Theory]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("\t\\\n")]
+        [InlineData("⚒⚓☣✈")]
+        [InlineData("randomPassword")]
+        public void Verify_WithCorrectPassword_ReturnTrue(string password)
         {
-            //Arrange
-            IPasswordHashProvider provider = new VanillaHashProvider();
-
-            string password = null;
-            string hash = null;
-            Action action = () => provider.Verify(password, hash);
+            // Arrange
+            string correctPassword = password;
+            string hash;
+            bool result;
 
             // Act
+            hash = _passwordHashProvider.GenerateHash(password);
+            result = _passwordHashProvider.Verify(correctPassword, hash);
+
             // Assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.True(result);
         }
+        #endregion
     }
 }
