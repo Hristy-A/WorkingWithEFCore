@@ -12,7 +12,7 @@
         {
             TypeId = (int)eventType;
             Name = eventType.ToString();
-            Description = eventType.GetDescriptionIfExsists();
+            Description = eventType.GetDescriptionIfExists();
         }
     }
 }

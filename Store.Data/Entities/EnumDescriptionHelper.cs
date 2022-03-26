@@ -5,7 +5,7 @@ namespace Store.Data.Entities
 {
     internal static class EnumDescriptionHelper
     {
-        public static string GetDescriptionIfExsists<TEnum>(this TEnum eventType) where TEnum : struct, Enum
+        public static string GetDescriptionIfExists<TEnum>(this TEnum eventType) where TEnum : struct, Enum
         {
             Type type = eventType.GetType();
             string enumName = Enum.GetName(eventType);

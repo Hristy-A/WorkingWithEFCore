@@ -4,7 +4,7 @@ namespace Store.Data.Entities
 {
     public enum EventType
     {
-        [Description("Successful login")]
+        [Description("Successfull login")]
         SuccessfullLogin,
         [Description("Successfull logout")]
         SuccessfullLogout,
