@@ -8,7 +8,7 @@ using Store.Data;
 
 namespace Store.Data.Migrations
 {
-    [DbContext(typeof(StoreDbContext))]
+    [DbContext(typeof(PostgresStoreDbContext))]
     [Migration("20220131170138_RestrictManufacturerCascadeDetetion")]
     partial class RestrictManufacturerCascadeDetetion
     {

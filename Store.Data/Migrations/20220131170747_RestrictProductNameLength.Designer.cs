@@ -8,7 +8,7 @@ using Store.Data;
 
 namespace Store.Data.Migrations
 {
-    [DbContext(typeof(StoreDbContext))]
+    [DbContext(typeof(PostgresStoreDbContext))]
     [Migration("20220131170747_RestrictProductNameLength")]
     partial class RestrictProductNameLength
     {

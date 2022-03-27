@@ -1,49 +1,31 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Store.Data.ModelConfigurations;
+using Store.Data.Extensions;
 using Store.Data.Entities;
 
 namespace Store.Data
 {
-    public class StoreDbContext : DbContext
+    /// <summary>
+    /// Interface for application database context
+    /// </summary>
+    public abstract class StoreDbContext : DbContext
     {
         public DbSet<Product> Products { get; set; }
         public DbSet<Manufacturer> Manufacturers { get; set; }
-        public DbSet<User> Users { get; set; }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            var csb = new Npgsql.NpgsqlConnectionStringBuilder();
-            csb.Database = "store";
-            csb.Host = "localhost";
-            csb.Username = "postgres";
-            csb.Password = "admin";
-
-            var connectionString = csb.ToString();
-
-            optionsBuilder.UseNpgsql(connectionString);
-        }
+        public virtual DbSet<User> Users { get; set; }
+        public DbSet<AccountHistory> AccountHistories { get; set; }
+        public DbSet<EventTypeInfo> EventTypeInfo { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Product>(entity =>
-            {
-                entity
-                    .Property(x => x.Name)
-                    .HasMaxLength(255);
-            });
+            new ProductEntityTypeConfiguration().Configure(modelBuilder.Entity<Product>());
+            new UserEntityTypeConfiguration().Configure(modelBuilder.Entity<User>());
+            new AccountHistoryTypeConfiguration().Configure(modelBuilder.Entity<AccountHistory>());
+            new EventTypeInfoTypeConfiguration().Configure(modelBuilder.Entity<EventTypeInfo>());
 
-            modelBuilder.Entity<Product>()
-                .HasOne(x => x.Manufacturer)
-                .WithMany()
-                .HasForeignKey(x => x.ManufacturerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<User>()
-                .HasMany(x => x.Roles)
-                .WithMany(x => x.Users);
-
-            // TODO: добавить уникальный индекс на колонку Login, создать миграцию MakeLoginUnique (HasIndex(), Unique())
+            InitializeHelper.InitilizeEnumTable<EventType>(modelBuilder);
         }
     }
 }

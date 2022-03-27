@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Store.Data;
@@ -9,14 +10,15 @@ using Store.Data;
 namespace Store.Data.Migrations
 {
     [DbContext(typeof(PostgresStoreDbContext))]
-    partial class StoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220221145717_AddLoginIndexUniqueAndFixNamingInDatabase")]
+    partial class AddLoginIndexUniqueAndFixNamingInDatabase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Relational:MaxIdentifierLength", 63)
-                .HasAnnotation("ProductVersion", "5.0.15")
+                .HasAnnotation("ProductVersion", "5.0.14")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
             modelBuilder.Entity("RoleUser", b =>
@@ -36,91 +38,6 @@ namespace Store.Data.Migrations
                         .HasDatabaseName("iX_roleUser_usersId");
 
                     b.ToTable("roleUser");
-                });
-
-            modelBuilder.Entity("Store.Data.Entities.AccountHistory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
-                    b.Property<DateTimeOffset>("DateTimeOffset")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("dateTimeOffset");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasColumnType("text")
-                        .HasColumnName("errorMessage");
-
-                    b.Property<int>("EventType")
-                        .HasColumnType("integer")
-                        .HasColumnName("eventType");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer")
-                        .HasColumnName("userId");
-
-                    b.HasKey("Id")
-                        .HasName("pK_accountHistories");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("iX_accountHistories_userId");
-
-                    b.ToTable("accountHistories");
-                });
-
-            modelBuilder.Entity("Store.Data.Entities.EventTypeInfo", b =>
-                {
-                    b.Property<int>("TypeId")
-                        .HasColumnType("integer")
-                        .HasColumnName("typeId");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.HasKey("TypeId")
-                        .HasName("pK_eventTypeInfo");
-
-                    b.ToTable("eventTypeInfo");
-
-                    b.HasData(
-                        new
-                        {
-                            TypeId = 0,
-                            Description = "Successfull login",
-                            Name = "SuccessfullLogin"
-                        },
-                        new
-                        {
-                            TypeId = 1,
-                            Description = "Successfull logout",
-                            Name = "SuccessfullLogout"
-                        },
-                        new
-                        {
-                            TypeId = 2,
-                            Description = "Failed login attempt",
-                            Name = "LoginAttempt"
-                        },
-                        new
-                        {
-                            TypeId = 3,
-                            Description = "Failed logout attempt",
-                            Name = "LogoutAttempt"
-                        },
-                        new
-                        {
-                            TypeId = 4,
-                            Description = "Account disabled",
-                            Name = "Disabled"
-                        });
                 });
 
             modelBuilder.Entity("Store.Data.Entities.Manufacturer", b =>
@@ -209,9 +126,9 @@ namespace Store.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("createdOn");
 
-                    b.Property<bool>("Disabled")
+                    b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
-                        .HasColumnName("disabled");
+                        .HasColumnName("isActive");
 
                     b.Property<string>("Login")
                         .IsRequired()
@@ -249,18 +166,6 @@ namespace Store.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Store.Data.Entities.AccountHistory", b =>
-                {
-                    b.HasOne("Store.Data.Entities.User", "User")
-                        .WithMany("AccountHistory")
-                        .HasForeignKey("UserId")
-                        .HasConstraintName("fK_accountHistories_users_userId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Store.Data.Entities.Product", b =>
                 {
                     b.HasOne("Store.Data.Entities.Manufacturer", "Manufacturer")
@@ -271,11 +176,6 @@ namespace Store.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Manufacturer");
-                });
-
-            modelBuilder.Entity("Store.Data.Entities.User", b =>
-                {
-                    b.Navigation("AccountHistory");
                 });
 #pragma warning restore 612, 618
         }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Store.Data;
@@ -9,9 +10,10 @@ using Store.Data;
 namespace Store.Data.Migrations
 {
     [DbContext(typeof(PostgresStoreDbContext))]
-    partial class StoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220315161354_RenameAccountHistoryTable")]
+    partial class RenameAccountHistoryTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -94,7 +96,7 @@ namespace Store.Data.Migrations
                         new
                         {
                             TypeId = 0,
-                            Description = "Successfull login",
+                            Description = "Successful login",
                             Name = "SuccessfullLogin"
                         },
                         new
@@ -255,7 +257,7 @@ namespace Store.Data.Migrations
                         .WithMany("AccountHistory")
                         .HasForeignKey("UserId")
                         .HasConstraintName("fK_accountHistories_users_userId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");

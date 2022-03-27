@@ -2,7 +2,7 @@
 {
     public interface IPasswordHashProvider
     {
-        string GenerateHash(string input);
-        bool Verify(string input, string hash);
+        string GenerateHash(string password);
+        bool Verify(string password, string hash);
     }
 }
