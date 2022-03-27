@@ -10,9 +10,6 @@ namespace Store.Infrastructure.HashProviders
         // alredy contains password, hashed by this algorithm.
         const int HashLength = 20;
         const int SaltLength = 16;
-        const int HashStartIndex = 0;
-        const int SaltStartIndex = HashLength;
-        const int TotalHashLength = SaltLength + HashLength;
         const int NumberOfHashingIterations = 100000;
 
         /// <summary>
@@ -25,6 +22,7 @@ namespace Store.Infrastructure.HashProviders
         {
             _ = password ?? throw new ArgumentNullException(nameof(password));
 
+            int TotalHashLength = SaltLength + HashLength;
             byte[] salt = new byte[SaltLength];
             byte[] hashedPasswordWithSalt = new byte[TotalHashLength];
             RandomNumberGenerator.Fill(salt);
@@ -32,7 +30,8 @@ namespace Store.Infrastructure.HashProviders
             using (var rfc = new Rfc2898DeriveBytes(password, salt, NumberOfHashingIterations))
             {
                 byte[] hash = rfc.GetBytes(HashLength);
-                Array.Copy(hash, 0, hashedPasswordWithSalt, HashStartIndex, HashLength);
+                int SaltStartIndex = HashLength;
+                Array.Copy(hash, 0, hashedPasswordWithSalt, 0, HashLength);
                 Array.Copy(salt, 0, hashedPasswordWithSalt, SaltStartIndex, SaltLength);
             }
 
@@ -54,6 +53,7 @@ namespace Store.Infrastructure.HashProviders
             byte[] hashedPasswordWithSalt = Convert.FromBase64String(hash);
             byte[] salt = new byte[SaltLength];
 
+            int SaltStartIndex = HashLength;
             Array.Copy(hashedPasswordWithSalt, SaltStartIndex, salt, 0, SaltLength);
 
             byte[] hashedVerifiablePassword;
@@ -63,7 +63,8 @@ namespace Store.Infrastructure.HashProviders
                 hashedVerifiablePassword = rfc.GetBytes(HashLength);
             }
 
-            for (int i = 0; i < 20; i++)
+            // checking only hash part of array (20 first bytes)
+            for (int i = 0; i < HashLength; i++)
                 if (hashedPasswordWithSalt[i] != hashedVerifiablePassword[i]) return false;
             return true;
         }
