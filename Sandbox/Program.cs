@@ -12,7 +12,6 @@ namespace Sandbox
         // Сделать таблицу  AccountHistory : [PK] int Id, int UserId?, string UserLogin?, EventType EventType, DateTimeOffset Timestamp, string ErrorMessage?
         // EventType {SuccessfullLogin, SuccessfullLogout, LoginAttempt, Registration}
 
-
         static void Main()
         {
             #region Build Options
@@ -71,8 +70,6 @@ namespace Sandbox
                         Console.WriteLine("Operation not exists");
                         break;
                 }
-
-                
             }
         }
 

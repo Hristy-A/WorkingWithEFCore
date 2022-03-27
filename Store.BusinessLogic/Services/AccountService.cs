@@ -136,6 +136,7 @@ namespace Store.BusinessLogic.Services
                 if (password != passwordConfirmation)
                     throw new SignupException("Passwords don't math");
 
+                #region Validation Password
                 // TODO:
 
                 // проверить логин на уникальность
@@ -148,7 +149,8 @@ namespace Store.BusinessLogic.Services
                 //    _logger.Log("Password does not meet requirements");
                 //    return;
                 // }
-                // Password - ok/not ok
+                // Password - ok/not ok 
+                #endregion
 
                 string hashedPassword = _hashProvider.GenerateHash(password);
 
