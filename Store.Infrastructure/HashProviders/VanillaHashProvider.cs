@@ -22,17 +22,17 @@ namespace Store.Infrastructure.HashProviders
         {
             _ = password ?? throw new ArgumentNullException(nameof(password));
 
-            int TotalHashLength = SaltLength + HashLength;
+            int totalHashLength = SaltLength + HashLength;
             byte[] salt = new byte[SaltLength];
-            byte[] hashedPasswordWithSalt = new byte[TotalHashLength];
+            byte[] hashedPasswordWithSalt = new byte[totalHashLength];
             RandomNumberGenerator.Fill(salt);
 
             using (var rfc = new Rfc2898DeriveBytes(password, salt, NumberOfHashingIterations))
             {
                 byte[] hash = rfc.GetBytes(HashLength);
-                int SaltStartIndex = HashLength;
+                int saltStartIndex = HashLength;
                 Array.Copy(hash, 0, hashedPasswordWithSalt, 0, HashLength);
-                Array.Copy(salt, 0, hashedPasswordWithSalt, SaltStartIndex, SaltLength);
+                Array.Copy(salt, 0, hashedPasswordWithSalt, saltStartIndex, SaltLength);
             }
 
             return Convert.ToBase64String(hashedPasswordWithSalt);
@@ -53,8 +53,8 @@ namespace Store.Infrastructure.HashProviders
             byte[] hashedPasswordWithSalt = Convert.FromBase64String(hash);
             byte[] salt = new byte[SaltLength];
 
-            int SaltStartIndex = HashLength;
-            Array.Copy(hashedPasswordWithSalt, SaltStartIndex, salt, 0, SaltLength);
+            int saltStartIndex = HashLength;
+            Array.Copy(hashedPasswordWithSalt, saltStartIndex, salt, 0, SaltLength);
 
             byte[] hashedVerifiablePassword;
 
