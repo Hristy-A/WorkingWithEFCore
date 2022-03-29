@@ -1,0 +1,37 @@
+name: Deploy project
+
+on: 
+  pull_request: 
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v3
+      - name: Preparing dependencies
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 5.0.x
+        
+      - name: Instal dependecies
+        run: dotnet restore
+
+      - name: Build
+        shell: pwsh
+        run: |
+          cd C:\Users\ПК\Desktop\rep\WorkingWithEFCore
+          dotnet restore
+          dotnet publish .\Store.BusinessLogic\Store.BusinessLogic.csproj -c Release -o deploy
+          del .\deploy\*.pdb
+          del .\deploy\*.json
+
+      - name: Publish
+        uses: actions/upload-artifact@v2
+        with:
+          name: AccountService
+          path: ./deploy/
