@@ -2,6 +2,9 @@ name: Test projects
 
 on: [push, pull_request]
 
+env:
+  DOTNET_VERSION: '5.0.x'
+
 jobs:
   test:
     name: Test
@@ -12,7 +15,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: 5.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Install dependencies
         run: dotnet restore

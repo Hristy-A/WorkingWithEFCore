@@ -3,7 +3,12 @@ name: Deploy project
 on: 
   pull_request: 
     branches: [ main ]
+    paths-ignore:
+    - 'README.md'
   workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '5.0.x'
 
 jobs:
   build:
@@ -16,16 +21,20 @@ jobs:
       - name: Preparing dependencies
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: 5.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
         
-      - name: Instal dependecies
+      - name: Install dependencies
         run: dotnet restore
+
+      - name: Build for tests
+        run: dotnet build --no-restore
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
 
       - name: Build
         shell: pwsh
         run: |
-          cd C:\Users\ПК\Desktop\rep\WorkingWithEFCore
-          dotnet restore
           dotnet publish .\Store.BusinessLogic\Store.BusinessLogic.csproj -c Release -o deploy
           del .\deploy\*.pdb
           del .\deploy\*.json
