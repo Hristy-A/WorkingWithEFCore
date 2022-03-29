@@ -1,4 +1,4 @@
-[![Test results](https://github.com/Hristy-A/WorkingWithEFCore/actions/workflows/test-project.yml/badge.svg?branch=main)](https://github.com/Hristy-A/WorkingWithEFCore/actions/workflows/test-project.yml)
+[![Test results](https://github.com/Hristy-A/WorkingWithEFCore/actions/workflows/test-project.yml/badge.svg?branch=main)](https://github.com/Hristy-A/WorkingWithEFCore/actions/workflows/test-project.yml) [![Deploy project](https://github.com/Hristy-A/WorkingWithEFCore/actions/workflows/build-project.yml/badge.svg)](https://github.com/Hristy-A/WorkingWithEFCore/actions/workflows/build-project.yml)
 
 # WorkingWithEFCore
 Stadying how to use EFCore:
