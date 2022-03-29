@@ -1,3 +1,5 @@
+[![Test results](https://github.com/Hristy-A/WorkingWithEFCore/actions/workflows/test-project.yml/badge.svg?branch=main)](https://github.com/Hristy-A/WorkingWithEFCore/actions/workflows/test-project.yml)
+
 # WorkingWithEFCore
 Stadying how to use EFCore:
 
