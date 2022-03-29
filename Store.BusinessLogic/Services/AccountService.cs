@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Store.BusinessLogic.Exceptions;
 using Store.Data;
 using Store.Data.Entities;
 using Store.Infrastructure.HashProviders;
-using Store.Infrastructure.Loggers;
 
 namespace Store.BusinessLogic.Services
 {
@@ -54,7 +54,7 @@ namespace Store.BusinessLogic.Services
             }
             catch (DisableException ex)
             {
-                _logger.Log($"[{ex}] {ex.Message}");
+                _logger.LogError(ex, ex.Message);
                 throw;
             }
         }
@@ -90,7 +90,7 @@ namespace Store.BusinessLogic.Services
                 _dataContext.AccountHistories.Add(accountHistoryLoginAttempt);
                 _dataContext.SaveChanges();
 
-                _logger.Log($"[{ex}] {ex.Message}");
+                _logger.LogError(ex, ex.Message);
                 throw;
             }
 
@@ -124,7 +124,7 @@ namespace Store.BusinessLogic.Services
                 _dataContext.AccountHistories.Add(accountHistorySuccessfullLogout);
                 _dataContext.SaveChanges();
 
-                _logger.Log($"[{ex}] {ex.Message}");
+                _logger.LogError(ex, ex.Message);
                 throw;
             }
         }
@@ -169,7 +169,7 @@ namespace Store.BusinessLogic.Services
             }
             catch (SignupException ex)
             {
-                _logger.Log($"[{ex}] {ex.Message}");
+                _logger.LogError(ex, ex.Message);
                 throw;
             }
 
