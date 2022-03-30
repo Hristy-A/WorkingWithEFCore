@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.1.32319.34
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32228.343
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Store.Data", "Store.Data\Store.Data.csproj", "{6E3E28A0-D14A-4F7C-B50E-6207F7719A9D}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BenchmarkTests", "BenchmarkTests\BenchmarkTests.csproj", "{5E95D88E-00F3-4263-BDBF-7A7A91ED03CF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Store.BusinessLogic.Tests", "Store.BusinessLogic.Tests\Store.BusinessLogic.Tests.csproj", "{75FE205C-5823-4C11-959A-1A1A46F722E9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{29843222-87A4-441A-A549-EC69031968F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -54,6 +56,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BB5B3AE2-41D5-4101-AACD-516814478A12} = {29843222-87A4-441A-A549-EC69031968F2}
+		{5E95D88E-00F3-4263-BDBF-7A7A91ED03CF} = {29843222-87A4-441A-A549-EC69031968F2}
+		{75FE205C-5823-4C11-959A-1A1A46F722E9} = {29843222-87A4-441A-A549-EC69031968F2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A4252270-627D-42E2-877C-9AB354FE7575}

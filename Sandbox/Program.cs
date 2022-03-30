@@ -1,17 +1,14 @@
 ﻿using System;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using Store.BusinessLogic.Services;
 using Store.Data;
 using Store.Infrastructure.HashProviders;
-using Store.Infrastructure.Loggers;
 
 namespace Sandbox
 {
     class Program
     {
-        //TODO: (done)
-        // Сделать таблицу  AccountHistory : [PK] int Id, int UserId?, string UserLogin?, EventType EventType, DateTimeOffset Timestamp, string ErrorMessage?
-        // EventType {SuccessfullLogin, SuccessfullLogout, LoginAttempt, Registration}
-
         static void Main()
         {
             #region Build Options
@@ -24,7 +21,7 @@ namespace Sandbox
             #endregion
 
             IPasswordHashProvider hashProvider = new BCryptHashProvider();
-            ILogger logger = new DebugWindowLogger();
+            ILogger logger = new ConsoleLoggerProvider(new OptionsMonitor<ConsoleLoggerOptions>(new ConsoleLoggerOptions())).CreateLogger("Sandbox");
             StoreDbContext dbContext = new PostgresStoreDbContext();
 
             IAccountService accountService = new AccountService(dbContext, hashProvider, logger);
