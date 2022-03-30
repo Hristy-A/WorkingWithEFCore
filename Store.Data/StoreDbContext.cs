@@ -13,7 +13,7 @@ namespace Store.Data
         public DbSet<Product> Products { get; set; }
         public DbSet<Manufacturer> Manufacturers { get; set; }
         public virtual DbSet<User> Users { get; set; }
-        public DbSet<AccountHistory> AccountHistories { get; set; }
+        public virtual DbSet<AccountHistory> AccountHistories { get; set; }
         public DbSet<EventTypeInfo> EventTypeInfo { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

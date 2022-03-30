@@ -111,5 +111,65 @@ namespace Store.BusinessLogic.Tests
             //Assert
             dbContextMock.Verify(x => x.Users.Add(It.IsAny<User>()), Times.Never());
         }
+
+        [TestMethod]
+        public void SuccessfullLogin()
+        {
+            //Arrange
+            string login = "login";
+            string password = "password";
+            string passwordHash = "passwordHash";
+
+            var users = new List<User>()
+            {
+                new User()
+                {
+                    Login = login,
+                    Password = passwordHash,
+                    Disabled = false
+                }
+            };
+
+            var usersSetMock = DbSetFaker.MockDbSet(users);
+            var accountHistorySetMock = DbSetFaker.MockDbSet(Enumerable.Empty<AccountHistory>());
+
+            var dbContextMock = new Mock<StoreDbContext>();
+            dbContextMock.Setup(c => c.Users).Returns(usersSetMock.Object);
+            dbContextMock.Setup(c => c.AccountHistories).Returns(accountHistorySetMock.Object);
+
+            var passwordHashProviderStub = new Mock<IPasswordHashProvider>();
+            passwordHashProviderStub.Setup(x => x.Verify(password, passwordHash)).Returns(true);
+            ILogger logger = Mock.Of<ILogger>();
+
+            IAccountService accountService = new AccountService(dbContextMock.Object, passwordHashProviderStub.Object, logger);
+
+            //Act
+            User user = accountService.LogIn(login, password);
+
+            //Assert
+            Assert.IsNotNull(user);
+        }
     }
 }
+
+// TODO
+//User LogIn(string login, string password);
+//  Good way:
+//		-User object is returned (OK)
+//   Bad way:
+//      - login not found
+//		- incorrect password
+//		- user is disabled
+
+//void LogOut(User user);
+//   Bad way:
+//		- user not found
+//		- user is disabled
+
+//void Disable(User user);
+//  Good way:
+//		-user.Disabled is set to true
+
+//    Bad way:
+//		- user not found
+//		- user is already disabled
