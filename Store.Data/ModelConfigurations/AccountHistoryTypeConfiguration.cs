@@ -6,7 +6,6 @@ namespace Store.Data.ModelConfigurations
 {
     public class AccountHistoryTypeConfiguration : IEntityTypeConfiguration<AccountHistory>
     {
-        //TODO: remove (= make restrict deletion)
         public void Configure(EntityTypeBuilder<AccountHistory> builder)
         {
             builder
