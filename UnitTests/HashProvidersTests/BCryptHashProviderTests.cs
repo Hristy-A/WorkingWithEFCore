@@ -4,6 +4,7 @@ using Xunit;
 
 namespace UnitTests.HashProvidersTests
 {
+    //TODO: проверить имена тестов, убрать избыточные Arrange секции
     public class BCryptHashProviderTests
     {
         private static IPasswordHashProvider _passwordHashProvider = new BCryptHashProvider();

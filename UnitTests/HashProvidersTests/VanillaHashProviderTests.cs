@@ -14,13 +14,10 @@ namespace UnitTests.HashProvidersTests
         [InlineData("qwerty")]
         [InlineData("⚒⚓☣✈")]
         [InlineData("\\\n\t\r\f\b")]
-        public void GenerateHash_WithDifferenceNotNullInput_SuccesfullGenerateHash(string password)
+        public void GenerateHash_WithNotNullInput_SuccesfullGenerateHash(string password)
         {
-            // Arrange
-            string hash;
-
             // Act
-            hash = _passwordHashProvider.GenerateHash(password);
+            string hash = _passwordHashProvider.GenerateHash(password);
 
             // Assert
             Assert.NotNull(hash);
@@ -33,12 +30,9 @@ namespace UnitTests.HashProvidersTests
         [InlineData("\\\n\t\r\f\b")]
         public void GenerateHash_WithTheSameInput_ReturnDifferentHashes(string password)
         {
-            // Arrange
-            string hash1, hash2;
-
             // Act
-            hash1 = _passwordHashProvider.GenerateHash(password);
-            hash2 = _passwordHashProvider.GenerateHash(password);
+            string hash1 = _passwordHashProvider.GenerateHash(password);
+            string hash2 = _passwordHashProvider.GenerateHash(password);
 
             // Assert
             Assert.NotEqual(hash1, hash2);
@@ -47,8 +41,6 @@ namespace UnitTests.HashProvidersTests
         [Fact]
         public void GenerateHash_WhenInputIsNull_ShouldThrowArgumentNullException()
         {
-            // Act
-            // Assert
             Assert.Throws<ArgumentNullException>(() =>
             {
                 _passwordHashProvider.GenerateHash(null);
@@ -80,16 +72,14 @@ namespace UnitTests.HashProvidersTests
         public void Verify_WithIncorrectPassword_ReturnFalse(string password)
         {
             // Arrange
+            string correctPasswordHash = _passwordHashProvider.GenerateHash(password);
             string incorrectPassword = "incorrectPassword";
-            string hash;
-            bool result;
 
             // Act
-            hash = _passwordHashProvider.GenerateHash(password);
-            result = _passwordHashProvider.Verify(incorrectPassword, hash);
+            bool isPasswordValid = _passwordHashProvider.Verify(incorrectPassword, correctPasswordHash);
 
             // Assert
-            Assert.False(result);
+            Assert.False(isPasswordValid);
         }
 
         [Theory]
@@ -101,16 +91,13 @@ namespace UnitTests.HashProvidersTests
         public void Verify_WithCorrectPassword_ReturnTrue(string password)
         {
             // Arrange
-            string correctPassword = password;
-            string hash;
-            bool result;
+            string passwordHash = _passwordHashProvider.GenerateHash(password);
 
             // Act
-            hash = _passwordHashProvider.GenerateHash(password);
-            result = _passwordHashProvider.Verify(correctPassword, hash);
+            bool isPasswordValid = _passwordHashProvider.Verify(password, passwordHash);
 
             // Assert
-            Assert.True(result);
+            Assert.True(isPasswordValid);
         }
         #endregion
     }
