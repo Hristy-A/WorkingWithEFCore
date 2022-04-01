@@ -18,7 +18,7 @@ namespace Store.Data.Entities
 
         #region Navigation properties
 
-        public virtual ICollection<AccountHistory> AccountHistory { get; set; }
+        public virtual ICollection<AccountHistoryEntry> AccountHistory { get; set; }
         public virtual ICollection<Role> Roles { get; set; }
         #endregion
     }

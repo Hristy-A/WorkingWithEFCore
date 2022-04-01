@@ -6,7 +6,7 @@ namespace Store.Data.Extensions
 {
     internal static class InitializeHelper
     {
-        public static void InitilizeEnumTable<TEnumType>(ModelBuilder modelBuilder) where TEnumType : struct, Enum
+        public static void InitializeEnumTable<TEnumType>(ModelBuilder modelBuilder) where TEnumType : struct, Enum
         {
             foreach (EventType eventType in Enum.GetValues<EventType>())
             {

@@ -4,15 +4,18 @@ using Store.Data.Entities;
 
 namespace Store.Data.ModelConfigurations
 {
-    public class AccountHistoryTypeConfiguration : IEntityTypeConfiguration<AccountHistory>
+    public class AccountHistoryEntryTypeConfiguration : IEntityTypeConfiguration<AccountHistoryEntry>
     {
-        public void Configure(EntityTypeBuilder<AccountHistory> builder)
+        public void Configure(EntityTypeBuilder<AccountHistoryEntry> builder)
         {
             builder
                 .HasOne(x => x.User)
                 .WithMany(x => x.AccountHistory)
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.
+                ToTable("accountHistory");
         }
     }
 }

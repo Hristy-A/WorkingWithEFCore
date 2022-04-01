@@ -36,8 +36,8 @@ namespace Store.BusinessLogic.Services
 
                 user.Disabled = true;
 
-                AccountHistory accountHistoryDisabled = CreateAccountHistoryEntry(EventType.Disabled, user, null);
-                _dataContext.AccountHistories.Add(accountHistoryDisabled);
+                var entry = CreateAccountHistoryEntry(EventType.Disabled, user, null);
+                _dataContext.AccountHistory.Add(entry);
                 _dataContext.SaveChanges();
             }
             catch (DisableException ex)
@@ -66,16 +66,16 @@ namespace Store.BusinessLogic.Services
                 if (!_hashProvider.Verify(password, user.Password))
                     throw new LoginException("Wrong password");
 
-                AccountHistory entry = CreateAccountHistoryEntry(EventType.SuccessfullLogin, user, null);
+                var entry = CreateAccountHistoryEntry(EventType.SuccessfullLogin, user, null);
 
-                _dataContext.AccountHistories.Add(entry);
+                _dataContext.AccountHistory.Add(entry);
                 _dataContext.SaveChanges();
             }
             catch (LoginException ex)
             {
-                AccountHistory entry = CreateAccountHistoryEntry(EventType.LoginAttempt, user, ex.Message);
+                var entry = CreateAccountHistoryEntry(EventType.LoginAttempt, user, ex.Message);
 
-                _dataContext.AccountHistories.Add(entry);
+                _dataContext.AccountHistory.Add(entry);
                 _dataContext.SaveChanges();
 
                 _logger.LogError(ex, ex.Message);
@@ -99,16 +99,16 @@ namespace Store.BusinessLogic.Services
                 if (!user.Disabled)
                     throw new LogoutException("User is not exist");
 
-                AccountHistory entry = CreateAccountHistoryEntry(EventType.SuccessfullLogout, user, null);
+                var entry = CreateAccountHistoryEntry(EventType.SuccessfullLogout, user, null);
 
-                _dataContext.AccountHistories.Add(entry);
+                _dataContext.AccountHistory.Add(entry);
                 _dataContext.SaveChanges();
             }
             catch (LogoutException ex)
             {
-                AccountHistory entry = CreateAccountHistoryEntry(EventType.LogoutAttempt, user, ex.Message);
+                var entry = CreateAccountHistoryEntry(EventType.LogoutAttempt, user, ex.Message);
 
-                _dataContext.AccountHistories.Add(entry);
+                _dataContext.AccountHistory.Add(entry);
                 _dataContext.SaveChanges();
 
                 _logger.LogError(ex, ex.Message);
@@ -168,8 +168,8 @@ namespace Store.BusinessLogic.Services
             }
         }
 
-        private static AccountHistory CreateAccountHistoryEntry(EventType eventType, User user, string errorMessage) =>
-            new AccountHistory
+        private static AccountHistoryEntry CreateAccountHistoryEntry(EventType eventType, User user, string errorMessage) =>
+            new AccountHistoryEntry
             {
                 EventType = eventType,
                 User = user,

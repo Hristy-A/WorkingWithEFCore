@@ -13,7 +13,7 @@ namespace Store.Data
         public DbSet<Product> Products { get; set; }
         public DbSet<Manufacturer> Manufacturers { get; set; }
         public virtual DbSet<User> Users { get; set; }
-        public virtual DbSet<AccountHistory> AccountHistories { get; set; }
+        public virtual DbSet<AccountHistoryEntry> AccountHistory { get; set; }
         public DbSet<EventTypeInfo> EventTypeInfo { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -22,10 +22,10 @@ namespace Store.Data
 
             new ProductEntityTypeConfiguration().Configure(modelBuilder.Entity<Product>());
             new UserEntityTypeConfiguration().Configure(modelBuilder.Entity<User>());
-            new AccountHistoryTypeConfiguration().Configure(modelBuilder.Entity<AccountHistory>());
+            new AccountHistoryEntryTypeConfiguration().Configure(modelBuilder.Entity<AccountHistoryEntry>());
             new EventTypeInfoTypeConfiguration().Configure(modelBuilder.Entity<EventTypeInfo>());
 
-            InitializeHelper.InitilizeEnumTable<EventType>(modelBuilder);
+            InitializeHelper.InitializeEnumTable<EventType>(modelBuilder);
         }
     }
 }

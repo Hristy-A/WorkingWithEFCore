@@ -131,11 +131,11 @@ namespace Store.BusinessLogic.Tests
             };
 
             var usersSetMock = DbSetFaker.MockDbSet(users);
-            var accountHistorySetMock = DbSetFaker.MockDbSet(Enumerable.Empty<AccountHistory>());
+            var accountHistorySetMock = DbSetFaker.MockDbSet(Enumerable.Empty<AccountHistoryEntry>());
 
             var dbContextMock = new Mock<StoreDbContext>();
             dbContextMock.Setup(c => c.Users).Returns(usersSetMock.Object);
-            dbContextMock.Setup(c => c.AccountHistories).Returns(accountHistorySetMock.Object);
+            dbContextMock.Setup(c => c.AccountHistory).Returns(accountHistorySetMock.Object);
 
             var passwordHashProviderStub = new Mock<IPasswordHashProvider>();
             passwordHashProviderStub.Setup(x => x.Verify(password, passwordHash)).Returns(true);
