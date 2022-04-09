@@ -176,10 +176,8 @@ namespace Store.BusinessLogic.Tests
             IAccountService accountService = new AccountService(dbContextMock.Object, passwordHashProviderStub, loggerProviderStub);
 
             // Act
-            User user = accountService.LogIn(login, password);
-
             // Assert
-            Assert.IsNull(user);
+            Assert.ThrowsException<LoginException>(() => accountService.LogIn(login, password));
             dbContextMock.Verify(x => x.Users, Times.Once());
             dbContextMock.Verify(x => x.AccountHistory, Times.Never());
         }

@@ -73,10 +73,13 @@ namespace Store.BusinessLogic.Services
             }
             catch (LoginException ex)
             {
-                var entry = CreateAccountHistoryEntry(EventType.LoginAttempt, user, ex.Message);
+                if(user is not null)
+                {
+                    var entry = CreateAccountHistoryEntry(EventType.LoginAttempt, user, ex.Message);
 
-                _dataContext.AccountHistory.Add(entry);
-                _dataContext.SaveChanges();
+                    _dataContext.AccountHistory.Add(entry);
+                    _dataContext.SaveChanges();
+                }
 
                 _logger.LogError(ex, ex.Message);
                 throw;
@@ -96,8 +99,8 @@ namespace Store.BusinessLogic.Services
                 if (user is null)
                     throw new LogoutException("User not found");
 
-                if (!user.Disabled)
-                    throw new LogoutException("User is not exist");
+                if (user.Disabled)
+                    throw new LogoutException("User was deleted");
 
                 var entry = CreateAccountHistoryEntry(EventType.SuccessfullLogout, user, null);
 
