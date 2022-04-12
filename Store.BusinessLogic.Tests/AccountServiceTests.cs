@@ -77,7 +77,7 @@ namespace Store.BusinessLogic.Tests
             string password = "password";
 
             //Act
-            Assert.ThrowsException<SignupException>(() =>
+            Assert.ThrowsException<AccountException>(() =>
             {
                 accountService.SignUp(login, password, password);
             });
@@ -109,7 +109,7 @@ namespace Store.BusinessLogic.Tests
             string passwordConfirmation = "password1";
 
             //Act
-            Assert.ThrowsException<SignupException>(() =>
+            Assert.ThrowsException<AccountException>(() =>
             {
                 accountService.SignUp(login, password, passwordConfirmation);
             });
@@ -177,7 +177,7 @@ namespace Store.BusinessLogic.Tests
 
             // Act
             // Assert
-            Assert.ThrowsException<LoginException>(() => accountService.LogIn(login, password));
+            Assert.ThrowsException<AccountException>(() => accountService.LogIn(login, password));
             dbContextMock.Verify(x => x.Users, Times.Once());
             dbContextMock.Verify(x => x.AccountHistory, Times.Never());
         }
@@ -217,7 +217,7 @@ namespace Store.BusinessLogic.Tests
 
             // Act
             // Assert
-            Assert.ThrowsException<LoginException>(() => accountService.LogIn(login, password), "Wrong password");
+            Assert.ThrowsException<AccountException>(() => accountService.LogIn(login, password), "Wrong password");
             dbContextMock.Verify(x => x.Users, Times.Once());
             dbContextMock.Verify(x => x.AccountHistory, Times.Once());
         }
@@ -254,7 +254,7 @@ namespace Store.BusinessLogic.Tests
 
             // Act
             // Assert
-            Assert.ThrowsException<LoginException>(() => accountService.LogIn(login, password), "User was deleted");
+            Assert.ThrowsException<AccountException>(() => accountService.LogIn(login, password), "User was deleted");
             dbContextMock.Verify(x => x.Users, Times.Once());
             dbContextMock.Verify(x => x.AccountHistory, Times.Once());
         }
@@ -279,7 +279,7 @@ namespace Store.BusinessLogic.Tests
 
             // Act
             // Assert
-            Assert.ThrowsException<LogoutException>(() => accountService.LogOut(userId), "User not found");
+            Assert.ThrowsException<AccountException>(() => accountService.LogOut(userId), "User not found");
             dbContextMock.Verify(x => x.Users, Times.Once());
             dbContextMock.Verify(x => x.AccountHistory, Times.Once());
         }
@@ -313,7 +313,7 @@ namespace Store.BusinessLogic.Tests
 
             // Act
             // Assert
-            Assert.ThrowsException<LogoutException>(() => accountService.LogOut(userId), "User was deleted");
+            Assert.ThrowsException<AccountException>(() => accountService.LogOut(userId), "User was deleted");
             dbContextMock.Verify(x => x.Users, Times.Once());
             dbContextMock.Verify(x => x.AccountHistory, Times.Once());
         }
@@ -374,7 +374,7 @@ namespace Store.BusinessLogic.Tests
 
             // Act
             // Assert
-            Assert.ThrowsException<DisableException>(() => accountService.Disable(userId), "User not found");
+            Assert.ThrowsException<AccountException>(() => accountService.Disable(userId), "User not found");
             dbContextMock.Verify(x => x.Users, Times.Once());
             dbContextMock.Verify(x => x.AccountHistory, Times.Never());
         }
@@ -408,7 +408,7 @@ namespace Store.BusinessLogic.Tests
 
             // Act
             // Assert
-            Assert.ThrowsException<DisableException>(() => accountService.Disable(userId), "User is already disabled");
+            Assert.ThrowsException<AccountException>(() => accountService.Disable(userId), "User is already disabled");
             dbContextMock.Verify(x => x.Users, Times.Once());
             dbContextMock.Verify(x => x.AccountHistory, Times.Never());
         }

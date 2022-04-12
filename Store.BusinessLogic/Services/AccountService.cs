@@ -29,10 +29,10 @@ namespace Store.BusinessLogic.Services
                 var user = _dataContext.Users.SingleOrDefault(x => x.Id == userId);
 
                 if (user is null)
-                    throw new DisableException("User not found");
+                    throw new AccountException("User not found");
 
                 if (user.Disabled)
-                    throw new DisableException("User is already disabled");
+                    throw new AccountException("User is already disabled");
 
                 user.Disabled = true;
 
@@ -40,7 +40,7 @@ namespace Store.BusinessLogic.Services
                 _dataContext.AccountHistory.Add(entry);
                 _dataContext.SaveChanges();
             }
-            catch (DisableException ex)
+            catch (AccountException ex)
             {
                 _logger.LogError(ex, ex.Message);
                 throw;
@@ -58,20 +58,20 @@ namespace Store.BusinessLogic.Services
                     .SingleOrDefault(x => x.Login == login);
 
                 if (user is null)
-                    throw new LoginException("User not found");
+                    throw new AccountException("User not found");
 
                 if (user.Disabled)
-                    throw new LoginException("User was deleted");
+                    throw new AccountException("User was deleted");
 
                 if (!_hashProvider.Verify(password, user.Password))
-                    throw new LoginException("Wrong password");
+                    throw new AccountException("Wrong password");
 
                 var entry = CreateAccountHistoryEntry(EventType.SuccessfullLogin, user, null);
 
                 _dataContext.AccountHistory.Add(entry);
                 _dataContext.SaveChanges();
             }
-            catch (LoginException ex)
+            catch (AccountException ex)
             {
                 if(user is not null)
                 {
@@ -97,17 +97,17 @@ namespace Store.BusinessLogic.Services
                 user = _dataContext.Users.SingleOrDefault(x => x.Id == userId);
 
                 if (user is null)
-                    throw new LogoutException("User not found");
+                    throw new AccountException("User not found");
 
                 if (user.Disabled)
-                    throw new LogoutException("User was deleted");
+                    throw new AccountException("User was deleted");
 
                 var entry = CreateAccountHistoryEntry(EventType.SuccessfullLogout, user, null);
 
                 _dataContext.AccountHistory.Add(entry);
                 _dataContext.SaveChanges();
             }
-            catch (LogoutException ex)
+            catch (AccountException ex)
             {
                 var entry = CreateAccountHistoryEntry(EventType.LogoutAttempt, user, ex.Message);
 
@@ -124,7 +124,7 @@ namespace Store.BusinessLogic.Services
             try
             {
                 if (password != passwordConfirmation)
-                    throw new SignupException("Passwords don't math");
+                    throw new AccountException("Passwords don't math");
 
                 #region Validation Password
                 // TODO:
@@ -161,10 +161,10 @@ namespace Store.BusinessLogic.Services
                 }
                 else
                 {
-                    throw new SignupException("This login already exists");
+                    throw new AccountException("This login already exists");
                 }
             }
-            catch (SignupException ex)
+            catch (AccountException ex)
             {
                 _logger.LogError(ex, ex.Message);
                 throw;
