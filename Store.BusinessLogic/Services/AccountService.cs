@@ -22,34 +22,22 @@ namespace Store.BusinessLogic.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        private AccountHistory CreateAccountHistory(EventType eventType, User user, string errorMessage) =>
-            new AccountHistory
-            {
-                EventType = eventType,
-                User = user,
-                ErrorMessage = errorMessage,
-                DateTimeOffset = DateTimeOffset.UtcNow
-            };
-
-        public void Disable(User user)
+        public void Disable(int userId)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user), "User cannot be null");
-
             try
             {
-                user = _dataContext.Users.SingleOrDefault(x => x.Id == user.Id);
+                var user = _dataContext.Users.SingleOrDefault(x => x.Id == userId);
 
                 if (user is null)
                     throw new DisableException("User not found");
 
-                if (user.Disabled) 
+                if (user.Disabled)
                     throw new DisableException("User is already disabled");
 
                 user.Disabled = true;
 
-                AccountHistory accountHistoryDisabled = CreateAccountHistory(EventType.Disabled, user, null);
-                _dataContext.AccountHistories.Add(accountHistoryDisabled);
+                var entry = CreateAccountHistoryEntry(EventType.Disabled, user, null);
+                _dataContext.AccountHistory.Add(entry);
                 _dataContext.SaveChanges();
             }
             catch (DisableException ex)
@@ -72,23 +60,26 @@ namespace Store.BusinessLogic.Services
                 if (user is null)
                     throw new LoginException("User not found");
 
-                if (user.Disabled) 
+                if (user.Disabled)
                     throw new LoginException("User was deleted");
 
-                if (!_hashProvider.Verify(password, user.Password)) 
+                if (!_hashProvider.Verify(password, user.Password))
                     throw new LoginException("Wrong password");
 
-                AccountHistory accountHistorySuccessfullLogin = CreateAccountHistory(EventType.SuccessfullLogin, user, null);
+                var entry = CreateAccountHistoryEntry(EventType.SuccessfullLogin, user, null);
 
-                _dataContext.AccountHistories.Add(accountHistorySuccessfullLogin);
+                _dataContext.AccountHistory.Add(entry);
                 _dataContext.SaveChanges();
             }
             catch (LoginException ex)
             {
-                AccountHistory accountHistoryLoginAttempt = CreateAccountHistory(EventType.LoginAttempt, user, ex.Message);
+                if(user is not null)
+                {
+                    var entry = CreateAccountHistoryEntry(EventType.LoginAttempt, user, ex.Message);
 
-                _dataContext.AccountHistories.Add(accountHistoryLoginAttempt);
-                _dataContext.SaveChanges();
+                    _dataContext.AccountHistory.Add(entry);
+                    _dataContext.SaveChanges();
+                }
 
                 _logger.LogError(ex, ex.Message);
                 throw;
@@ -97,31 +88,30 @@ namespace Store.BusinessLogic.Services
             return user;
         }
 
-        public void LogOut(User user)
+        public void LogOut(int userId)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user), "User cannot be null");
+            User user = null;
 
             try
             {
-                user = _dataContext.Users.SingleOrDefault(x => x.Id == user.Id);
+                user = _dataContext.Users.SingleOrDefault(x => x.Id == userId);
 
-                if (user is null) 
+                if (user is null)
                     throw new LogoutException("User not found");
 
-                if (!user.Disabled) 
-                    throw new LogoutException("User is not exist");
+                if (user.Disabled)
+                    throw new LogoutException("User was deleted");
 
-                AccountHistory accountHistorySuccessfullLogout = CreateAccountHistory(EventType.SuccessfullLogout, user, null);
+                var entry = CreateAccountHistoryEntry(EventType.SuccessfullLogout, user, null);
 
-                _dataContext.AccountHistories.Add(accountHistorySuccessfullLogout);
+                _dataContext.AccountHistory.Add(entry);
                 _dataContext.SaveChanges();
             }
             catch (LogoutException ex)
             {
-                AccountHistory accountHistorySuccessfullLogout = CreateAccountHistory(EventType.LogoutAttempt, user, ex.Message);
+                var entry = CreateAccountHistoryEntry(EventType.LogoutAttempt, user, ex.Message);
 
-                _dataContext.AccountHistories.Add(accountHistorySuccessfullLogout);
+                _dataContext.AccountHistory.Add(entry);
                 _dataContext.SaveChanges();
 
                 _logger.LogError(ex, ex.Message);
@@ -158,7 +148,14 @@ namespace Store.BusinessLogic.Services
 
                 if (existingUser is null)
                 {
-                    User user = CreateUser(login, hashedPassword);
+                    var user = new User
+                    {
+                        Login = login,
+                        Password = hashedPassword,
+                        CreatedOn = DateTimeOffset.UtcNow,
+                        Disabled = false
+                    };
+
                     _dataContext.Users.Add(user);
                     _dataContext.SaveChanges();
                 }
@@ -172,15 +169,15 @@ namespace Store.BusinessLogic.Services
                 _logger.LogError(ex, ex.Message);
                 throw;
             }
-
-            static User CreateUser(string login, string hashedPassword) =>
-                new User
-                {
-                    Login = login,
-                    Password = hashedPassword,
-                    CreatedOn = DateTimeOffset.UtcNow,
-                    Disabled = false
-                };
         }
+
+        private static AccountHistoryEntry CreateAccountHistoryEntry(EventType eventType, User user, string errorMessage) =>
+            new AccountHistoryEntry
+            {
+                EventType = eventType,
+                User = user,
+                ErrorMessage = errorMessage,
+                DateTimeOffset = DateTimeOffset.UtcNow
+            };
     }
 }

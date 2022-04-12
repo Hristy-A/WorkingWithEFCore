@@ -2,7 +2,7 @@
 
 namespace Store.Data.Entities
 {
-    public class AccountHistory
+    public class AccountHistoryEntry
     {
         public int Id { get; set; }
         public int UserId { get; set; }

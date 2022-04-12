@@ -41,6 +41,8 @@ namespace UnitTests.HashProvidersTests
         [Fact]
         public void GenerateHash_WhenInputIsNull_ShouldThrowArgumentNullException()
         {
+            // Act
+            // Assert
             Assert.Throws<ArgumentNullException>(() =>
             {
                 _passwordHashProvider.GenerateHash(null);

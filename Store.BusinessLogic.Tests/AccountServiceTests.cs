@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -54,10 +55,15 @@ namespace Store.BusinessLogic.Tests
         public void SignUp_WhenLoginIsBusy_ShouldFail()
         {
             //Arrange
-            var usersSetMock = DbSetFaker.MockDbSet(new List<User>()
+            List<User> users = new()
             {
-                new User() { Login = "busyLogin" }
-            });
+                new User
+                {
+                    Login = "busyLogin"
+                }
+            };
+
+            var usersSetMock = DbSetFaker.MockDbSet(users);
 
             var dbContextMock = new Mock<StoreDbContext>();
             dbContextMock.Setup(c => c.Users).Returns(usersSetMock.Object);
@@ -111,5 +117,322 @@ namespace Store.BusinessLogic.Tests
             //Assert
             dbContextMock.Verify(x => x.Users.Add(It.IsAny<User>()), Times.Never());
         }
+
+        [TestMethod]
+        public void SuccessfullLogin()
+        {
+            //Arrange
+            string login = "login";
+            string password = "password";
+            string passwordHash = "passwordHash";
+
+            List<User> users = new()
+            {
+                new User
+                {
+                    Login = login,
+                    Password = passwordHash,
+                    Disabled = false
+                }
+            };
+
+            var usersSetMock = DbSetFaker.MockDbSet(users);
+            var accountHistorySetMock = DbSetFaker.MockDbSet(new List<AccountHistoryEntry>());
+
+            var dbContextMock = new Mock<StoreDbContext>();
+            dbContextMock.Setup(c => c.Users).Returns(usersSetMock.Object);
+            dbContextMock.Setup(c => c.AccountHistory).Returns(accountHistorySetMock.Object);
+
+            var passwordHashProviderStub = new Mock<IPasswordHashProvider>();
+            passwordHashProviderStub.Setup(x => x.Verify(password, passwordHash)).Returns(true);
+            ILogger logger = Mock.Of<ILogger>();
+
+            IAccountService accountService = new AccountService(dbContextMock.Object, passwordHashProviderStub.Object, logger);
+
+            //Act
+            User user = accountService.LogIn(login, password);
+
+            //Assert
+            Assert.IsNotNull(user);
+            dbContextMock.Verify(x => x.Users, Times.Once());
+            dbContextMock.Verify(x => x.AccountHistory, Times.Once());
+        }
+
+        [TestMethod]
+        public void LogIn_WhenLoginNotFound_ShouldFail()
+        {
+            // Arange
+            string login = "login";
+            string password = "pasword";
+
+            var usersSetMock = DbSetFaker.MockDbSet(Enumerable.Empty<User>());
+
+            var dbContextMock = new Mock<StoreDbContext>();
+            dbContextMock.Setup(x => x.Users).Returns(usersSetMock.Object);
+
+            IPasswordHashProvider passwordHashProviderStub = Mock.Of<IPasswordHashProvider>();
+            ILogger loggerProviderStub = Mock.Of<ILogger>();
+
+            IAccountService accountService = new AccountService(dbContextMock.Object, passwordHashProviderStub, loggerProviderStub);
+
+            // Act
+            // Assert
+            Assert.ThrowsException<LoginException>(() => accountService.LogIn(login, password));
+            dbContextMock.Verify(x => x.Users, Times.Once());
+            dbContextMock.Verify(x => x.AccountHistory, Times.Never());
+        }
+
+        [TestMethod]
+        public void LogIn_WhenPasswordIncorrect_ShouldFail()
+        {
+
+            // Arange
+            string login = "login";
+            string password = "incorrectPassword";
+
+            List<User> users = new()
+            {
+                new User
+                {
+                    Login = login,
+                    Password = "password",
+                    Disabled = false
+                }
+            };
+
+            var usersSetMock = DbSetFaker.MockDbSet(users);
+            var accountHistorySetMock = DbSetFaker.MockDbSet(new List<AccountHistoryEntry>());
+
+            var dbContextMock = new Mock<StoreDbContext>();
+            dbContextMock.Setup(x => x.Users).Returns(usersSetMock.Object);
+            dbContextMock.Setup(x => x.AccountHistory).Returns(accountHistorySetMock.Object);
+
+            var passwordHashProvider = new Mock<IPasswordHashProvider>();
+            passwordHashProvider.Setup(x => x.Verify(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(new Func<string, string, bool>((x, y) => x == y));
+
+            ILogger logger = Mock.Of<ILogger>();
+
+            IAccountService accountService = new AccountService(dbContextMock.Object, passwordHashProvider.Object, logger);
+
+            // Act
+            // Assert
+            Assert.ThrowsException<LoginException>(() => accountService.LogIn(login, password), "Wrong password");
+            dbContextMock.Verify(x => x.Users, Times.Once());
+            dbContextMock.Verify(x => x.AccountHistory, Times.Once());
+        }
+
+        [TestMethod]
+        public void Login_WhenUserDisabled_ShouldThrowLoginException()
+        {
+
+            // Arange
+            string login = "login";
+            string password = "password";
+
+            List<User> users = new()
+            {
+                new User
+                {
+                    Login = login,
+                    Password = password,
+                    Disabled = true
+                }
+            };
+
+            var usersSetMock = DbSetFaker.MockDbSet(users);
+            var accountHistorySetMock = DbSetFaker.MockDbSet(new List<AccountHistoryEntry>());
+
+            var dbContextMock = new Mock<StoreDbContext>();
+            dbContextMock.Setup(x => x.Users).Returns(usersSetMock.Object);
+            dbContextMock.Setup(x => x.AccountHistory).Returns(accountHistorySetMock.Object);
+
+            IPasswordHashProvider passwordHashProvider = Mock.Of<IPasswordHashProvider>();
+            ILogger logger = Mock.Of<ILogger>();
+
+            IAccountService accountService = new AccountService(dbContextMock.Object, passwordHashProvider, logger);
+
+            // Act
+            // Assert
+            Assert.ThrowsException<LoginException>(() => accountService.LogIn(login, password), "User was deleted");
+            dbContextMock.Verify(x => x.Users, Times.Once());
+            dbContextMock.Verify(x => x.AccountHistory, Times.Once());
+        }
+
+        [TestMethod]
+        public void LogOut_WhenUserNotFound_ShouldThrowLogoutException()
+        {
+            // Arange
+            int userId = 1;
+
+            var usersSetMock = DbSetFaker.MockDbSet(Enumerable.Empty<User>());
+            var accountHistorySetMock = DbSetFaker.MockDbSet(new List<AccountHistoryEntry>());
+
+            var dbContextMock = new Mock<StoreDbContext>();
+            dbContextMock.Setup(x => x.Users).Returns(usersSetMock.Object);
+            dbContextMock.Setup(x => x.AccountHistory).Returns(accountHistorySetMock.Object);
+
+            IPasswordHashProvider passwordHashProvider = Mock.Of<IPasswordHashProvider>();
+            ILogger logger = Mock.Of<ILogger>();
+
+            IAccountService accountService = new AccountService(dbContextMock.Object, passwordHashProvider, logger);
+
+            // Act
+            // Assert
+            Assert.ThrowsException<LogoutException>(() => accountService.LogOut(userId), "User not found");
+            dbContextMock.Verify(x => x.Users, Times.Once());
+            dbContextMock.Verify(x => x.AccountHistory, Times.Once());
+        }
+
+        [TestMethod]
+        public void LogOut_WhenUserIsDisabled_ShouldThrowLogoutException()
+        {
+            // Arange
+            int userId = 1;
+
+            List<User> users = new()
+            {
+                new User
+                {
+                    Id = userId,
+                    Login = "login",
+                    Disabled = true
+                }
+            };
+            var usersSetMock = DbSetFaker.MockDbSet(users);
+            var accountHistorySetMock = DbSetFaker.MockDbSet(new List<AccountHistoryEntry>());
+
+            var dbContextMock = new Mock<StoreDbContext>();
+            dbContextMock.Setup(x => x.Users).Returns(usersSetMock.Object);
+            dbContextMock.Setup(x => x.AccountHistory).Returns(accountHistorySetMock.Object);
+
+            IPasswordHashProvider passwordHashProvider = Mock.Of<IPasswordHashProvider>();
+            ILogger logger = Mock.Of<ILogger>();
+
+            IAccountService accountService = new AccountService(dbContextMock.Object, passwordHashProvider, logger);
+
+            // Act
+            // Assert
+            Assert.ThrowsException<LogoutException>(() => accountService.LogOut(userId), "User was deleted");
+            dbContextMock.Verify(x => x.Users, Times.Once());
+            dbContextMock.Verify(x => x.AccountHistory, Times.Once());
+        }
+
+        [TestMethod]
+        public void SuccessfullDisable()
+        {
+            // Arange
+            int userId = 1;
+
+            List<User> users = new()
+            {
+                new User
+                {
+                    Id = userId,
+                    Login = "login",
+                    Disabled = false
+                }
+            };
+            var usersSetMock = DbSetFaker.MockDbSet(users);
+            var accountHistorySetMock = DbSetFaker.MockDbSet(new List<AccountHistoryEntry>());
+
+            var dbContextMock = new Mock<StoreDbContext>();
+            dbContextMock.Setup(x => x.Users).Returns(usersSetMock.Object);
+            dbContextMock.Setup(x => x.AccountHistory).Returns(accountHistorySetMock.Object);
+
+            IPasswordHashProvider passwordHashProvider = Mock.Of<IPasswordHashProvider>();
+            ILogger logger = Mock.Of<ILogger>();
+
+            IAccountService accountService = new AccountService(dbContextMock.Object, passwordHashProvider, logger);
+
+            // Act
+            accountService.Disable(userId);
+
+            // Assert
+            Assert.IsTrue(users.First().Disabled);
+            dbContextMock.Verify(x => x.Users, Times.Once());
+            dbContextMock.Verify(x => x.AccountHistory, Times.Once());
+        }
+
+        [TestMethod]
+        public void Disable_WhenUserNotFound_ThrowDisableException()
+        {
+            // Arange
+            int userId = 1;
+
+            var usersSetMock = DbSetFaker.MockDbSet(Enumerable.Empty<User>());
+            var accountHistorySetMock = DbSetFaker.MockDbSet(new List<AccountHistoryEntry>());
+
+            var dbContextMock = new Mock<StoreDbContext>();
+            dbContextMock.Setup(x => x.Users).Returns(usersSetMock.Object);
+            dbContextMock.Setup(x => x.AccountHistory).Returns(accountHistorySetMock.Object);
+
+            IPasswordHashProvider passwordHashProvider = Mock.Of<IPasswordHashProvider>();
+            ILogger logger = Mock.Of<ILogger>();
+
+            IAccountService accountService = new AccountService(dbContextMock.Object, passwordHashProvider, logger);
+
+            // Act
+            // Assert
+            Assert.ThrowsException<DisableException>(() => accountService.Disable(userId), "User not found");
+            dbContextMock.Verify(x => x.Users, Times.Once());
+            dbContextMock.Verify(x => x.AccountHistory, Times.Never());
+        }
+
+        [TestMethod]
+        public void Disable_WhenUserIsAlreadyDisabled_ShouldThrowDisableException()
+        {
+            // Arange
+            int userId = 1;
+
+            List<User> users = new()
+            {
+                new User
+                {
+                    Id = userId,
+                    Login = "login",
+                    Disabled = true
+                }
+            };
+            var usersSetMock = DbSetFaker.MockDbSet(users);
+            var accountHistorySetMock = DbSetFaker.MockDbSet(new List<AccountHistoryEntry>());
+
+            var dbContextMock = new Mock<StoreDbContext>();
+            dbContextMock.Setup(x => x.Users).Returns(usersSetMock.Object);
+            dbContextMock.Setup(x => x.AccountHistory).Returns(accountHistorySetMock.Object);
+
+            IPasswordHashProvider passwordHashProvider = Mock.Of<IPasswordHashProvider>();
+            ILogger logger = Mock.Of<ILogger>();
+
+            IAccountService accountService = new AccountService(dbContextMock.Object, passwordHashProvider, logger);
+
+            // Act
+            // Assert
+            Assert.ThrowsException<DisableException>(() => accountService.Disable(userId), "User is already disabled");
+            dbContextMock.Verify(x => x.Users, Times.Once());
+            dbContextMock.Verify(x => x.AccountHistory, Times.Never());
+        }
     }
 }
+
+// TODO
+//User LogIn(string login, string password);
+//  Good way:
+//		-User object is returned (OK)
+//   Bad way:
+//      - login not found
+//		- incorrect password
+//		- user is disabled
+
+//void LogOut(User user);
+//   Bad way:
+//		- user not found
+//		- user is disabled
+
+//void Disable(User user);
+//  Good way:
+//		-user.Disabled is set to true
+
+//    Bad way:
+//		- user not found
+//		- user is already disabled
