@@ -9,7 +9,7 @@ namespace Store.Data
         {
             var csb = new NpgsqlConnectionStringBuilder
             {
-                Database = "store",
+                Database = "authorization",
                 Host = "localhost",
                 Username = "postgres",
                 Password = "admin"

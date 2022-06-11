@@ -10,8 +10,6 @@ namespace Store.Data
     /// </summary>
     public abstract class StoreDbContext : DbContext
     {
-        public DbSet<Product> Products { get; set; }
-        public DbSet<Manufacturer> Manufacturers { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<AccountHistoryEntry> AccountHistory { get; set; }
         public DbSet<EventTypeInfo> EventTypeInfo { get; set; }
@@ -20,7 +18,6 @@ namespace Store.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            new ProductEntityTypeConfiguration().Configure(modelBuilder.Entity<Product>());
             new UserEntityTypeConfiguration().Configure(modelBuilder.Entity<User>());
             new AccountHistoryEntryTypeConfiguration().Configure(modelBuilder.Entity<AccountHistoryEntry>());
             new EventTypeInfoTypeConfiguration().Configure(modelBuilder.Entity<EventTypeInfo>());
