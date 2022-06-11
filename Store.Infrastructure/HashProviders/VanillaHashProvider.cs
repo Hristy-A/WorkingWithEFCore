@@ -6,8 +6,8 @@ namespace Store.Infrastructure.HashProviders
 {
     public class VanillaHashProvider : IPasswordHashProvider
     {
-        // Attention! Don't change this constats, if your database
-        // alredy contains password, hashed by this algorithm.
+        // Warning! Don't change this constats if your database
+        // alredy contains password hashed by this algorithm.
         const int HashLength = 20;
         const int SaltLength = 16;
         const int NumberOfHashingIterations = 100000;
@@ -23,8 +23,10 @@ namespace Store.Infrastructure.HashProviders
             _ = password ?? throw new ArgumentNullException(nameof(password));
 
             int totalHashLength = SaltLength + HashLength;
+
             byte[] salt = new byte[SaltLength];
             byte[] hashedPasswordWithSalt = new byte[totalHashLength];
+
             RandomNumberGenerator.Fill(salt);
 
             using (var rfc = new Rfc2898DeriveBytes(password, salt, NumberOfHashingIterations))
@@ -54,6 +56,7 @@ namespace Store.Infrastructure.HashProviders
             byte[] salt = new byte[SaltLength];
 
             int saltStartIndex = HashLength;
+
             Array.Copy(hashedPasswordWithSalt, saltStartIndex, salt, 0, SaltLength);
 
             byte[] hashedVerifiablePassword;

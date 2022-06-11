@@ -10,13 +10,10 @@ namespace Store.Infrastructure.HashProviders
         /// <param name="password">The password to hash.</param>
         /// <returns>The hashed password.</returns>
         /// <exception cref="ArgumentNullException">Throw when <paramref name="password"/> is null.</exception>
-        public string GenerateHash(string password)
-        {
-            _ = password ?? throw new ArgumentNullException(nameof(password));
-
-            var hash = BCrypt.Net.BCrypt.EnhancedHashPassword(password);
-            return hash;
-        }
+        public string GenerateHash(string password) =>
+            password is null
+                ? throw new ArgumentNullException(nameof(password))
+                : BCrypt.Net.BCrypt.EnhancedHashPassword(password);
 
         /// <summary>
         /// Verifies that the hash of the given <paramref name="password"/> matches the provided <paramref name="hash"/>, using BCrypt provider
@@ -25,12 +22,9 @@ namespace Store.Infrastructure.HashProviders
         /// <param name="hash">The previously-hashed password.</param>
         /// <returns>true if the passwords match, false otherwise.</returns>
         /// <exception cref="ArgumentNullException">Throw when <paramref name="password"/> or <paramref name="password"/> is null.</exception>
-        public bool Verify(string password, string hash)
-        {
-            _ = password ?? throw new ArgumentNullException(nameof(password));
-            _ = hash ?? throw new ArgumentNullException(nameof(password));
-
-            return BCrypt.Net.BCrypt.EnhancedVerify(password, hash);
-        }
+        public bool Verify(string password, string hash) =>
+            password is null || hash is null
+                ? throw new ArgumentNullException(nameof(password))
+                : BCrypt.Net.BCrypt.EnhancedVerify(password, hash);
     }
 }
